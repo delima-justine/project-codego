@@ -1,2 +1,2 @@
 # project-codego
-ResQ PH
+A project for Mobile Application Development
