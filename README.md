@@ -76,11 +76,10 @@ While this app acts as an information and sharing platform, its ultimate goal is
 
 ## 🛠 Tech Stack
 
-*(Update this section based on your actual development tools)*
-
-* **Frontend:** [e.g., Flutter / React Native / Android Java]
-* **Backend:** [e.g., Firebase / Node.js / Laravel]
-* **Database:** [e.g., Firestore / MySQL / SQLite]
+* **IDE:** Android Studio
+* **Language:** Kotlin
+* **Authentication:** Firebase Authentication
+* **Local Database:** Room Persistence Library (SQLite) - used for storing Local Emergency Contacts
 
 ---
 
@@ -89,27 +88,25 @@ While this app acts as an information and sharing platform, its ultimate goal is
 Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
-* [e.g., Node.js / Flutter SDK / JDK]
-* [e.g., Android Studio / VS Code]
+* Android Studio (latest version recommended)
+* Java Development Kit (JDK) 11 or higher (usually bundled with Android Studio)
 
 ### Installation
 
 1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/your-username/ResQ-PH.git](https://github.com/your-username/ResQ-PH.git)
+    git clone https://github.com/your-username/ResQ-PH.git
     ```
-2.  **Navigate to the project directory**
-    ```bash
-    cd ResQ-PH
-    ```
-3.  **Install dependencies**
-    ```bash
-    [Insert command, e.g., npm install or flutter pub get]
-    ```
+2.  **Open in Android Studio**
+    * Launch Android Studio.
+    * Select "Open an existing Android Studio project".
+    * Navigate to the cloned directory and select it.
+3.  **Sync Gradle**
+    * Android Studio should automatically detect the `build.gradle.kts` files and sync.
+    * If not, click "File" > "Sync Project with Gradle Files".
 4.  **Run the application**
-    ```bash
-    [Insert command, e.g., npm start or flutter run]
-    ```
+    * Connect an Android device or start an Emulator.
+    * Click the green "Run" button (Play icon) in the toolbar.
 
 ---
 
