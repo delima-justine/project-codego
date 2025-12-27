@@ -76,10 +76,13 @@ While this app acts as an information and sharing platform, its ultimate goal is
 
 ## 🛠 Tech Stack
 
-* **IDE:** Android Studio
-* **Language:** Kotlin
-* **Authentication:** Firebase Authentication
-* **Local Database:** Room Persistence Library (SQLite) - used for storing Local Emergency Contacts
+![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?style=for-the-badge&logo=android-studio&logoColor=white)
+![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white)
+![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
+
+*   **Authentication:** Firebase Authentication
+*   **Local Database:** Room Persistence Library (SQLite)
 
 ---
 
