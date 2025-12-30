@@ -92,7 +92,7 @@ While this app acts as an information and sharing platform, its ultimate goal is
 | Icon | Name | Role |
 | :---: | :--- | :--- |
 | <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Arroyo" width="40" height="40"> | **John Matthew Arroyo** | Backend Developer |
-| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Citron" width="40" height="40"> | **Kathleen Citron** | QA Tester |
+| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Kath" width="40" height="40"> | **Kathleen Citron** | QA Tester |
 | <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Delima" width="40" height="40"> | **Justine Delima** | Project Manager |
 | <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Quiambao" width="40" height="40"> | **Patricia Quiambao** | UI/UX Developer 1 |
 | <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Ynion" width="40" height="40"> | **Ma. Bea Mae Ynion** | UI/UX Developer 2 |
