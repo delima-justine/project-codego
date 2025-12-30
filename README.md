@@ -12,6 +12,7 @@ ResQ PH is a centralized mobile application designed to bridge the gap between t
 - [Target Audience](#-target-audience)
 - [Limitations](#-limitations)
 - [Tech Stack](#-tech-stack)
+- [Development Team](#-development-team)
 - [Getting Started](#-getting-started)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -83,6 +84,18 @@ While this app acts as an information and sharing platform, its ultimate goal is
 
 *   **Authentication:** Firebase Authentication
 *   **Local Database:** Room Persistence Library (SQLite)
+
+---
+
+## 👥 Development Team
+
+| Icon | Name | Role |
+| :---: | :--- | :--- |
+| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Arroyo" width="40" height="40"> | **John Matthew Arroyo** | Backend Developer |
+| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Citron" width="40" height="40"> | **Kathleen Citron** | QA Tester |
+| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Delima" width="40" height="40"> | **Justine Delima** | Project Manager |
+| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Quiambao" width="40" height="40"> | **Patricia Quiambao** | UI/UX Developer 1 |
+| <img src="https://api.dicebear.com/7.x/identicon/svg?seed=Ynion" width="40" height="40"> | **Ma. Bea Mae Ynion** | UI/UX Developer 2 |
 
 ---
 
