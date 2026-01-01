@@ -51,7 +51,8 @@ class MainActivity : ComponentActivity() {
 enum class Screen {
     Onboarding,
     Auth,
-    Home
+    Home,
+    CreatePost
 }
 
 @Composable
@@ -62,10 +63,15 @@ fun AppNavigation() {
         Screen.Onboarding -> OnboardingScreen(onGetStarted = { currentScreen = Screen.Auth })
         Screen.Auth -> AuthScreen(
             onLoginSuccess = { currentScreen = Screen.Home },
-            onNavigateToEmergency = { /* Handled within Home now */ currentScreen = Screen.Home } 
+            onNavigateToEmergency = { currentScreen = Screen.Home } 
         )
-        // Pass onLogout to handle signing out from Profile
-        Screen.Home -> SharingHubScreen(onLogout = { currentScreen = Screen.Auth })
+        Screen.Home -> SharingHubScreen(
+            onLogout = { currentScreen = Screen.Auth },
+            onNavigateToCreatePost = { currentScreen = Screen.CreatePost }
+        )
+        Screen.CreatePost -> CreatePostScreen(
+            onBackClick = { currentScreen = Screen.Home }
+        )
     }
 }
 
@@ -88,7 +94,7 @@ data class Post(
 )
 
 @Composable
-fun SharingHubScreen(onLogout: () -> Unit) {
+fun SharingHubScreen(onLogout: () -> Unit, onNavigateToCreatePost: () -> Unit) {
     // Tab State
     var currentTab by remember { mutableStateOf("Home") }
 
@@ -104,11 +110,11 @@ fun SharingHubScreen(onLogout: () -> Unit) {
         // Content Switching
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (currentTab) {
-                "Home" -> FeedContent()
+                "Home" -> FeedContent(onNavigateToCreatePost)
                 "Emergency" -> EmergencyContactsScreen()
                 "Profile" -> ProfileScreen(onLogout = onLogout)
-                "News" -> NewsScreen() // Link News Page
-                else -> FeedContent() 
+                "News" -> NewsScreen()
+                else -> FeedContent(onNavigateToCreatePost) 
             }
         }
     }
@@ -116,7 +122,7 @@ fun SharingHubScreen(onLogout: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedContent() {
+fun FeedContent(onNavigateToCreatePost: () -> Unit) {
     Scaffold(
         topBar = {
             Column(
@@ -127,7 +133,7 @@ fun FeedContent() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "PH ResQ PH",
+                    text = "ResQ PH",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -152,7 +158,7 @@ fun FeedContent() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item { CategorySection() }
-                item { ShareExperienceButton() }
+                item { ShareExperienceButton(onClick = onNavigateToCreatePost) }
                 items(samplePosts) { post -> PostCard(post) }
             }
         }
@@ -202,9 +208,9 @@ fun CategorySection() {
 }
 
 @Composable
-fun ShareExperienceButton() {
+fun ShareExperienceButton(onClick: () -> Unit) {
     Button(
-        onClick = { },
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = ActionRed),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
@@ -325,7 +331,7 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
             "Home" to Icons.Default.Home,
             "Emergency" to Icons.Default.Phone,
             "Profile" to Icons.Default.Person,
-            "News" to Icons.Default.DateRange // Changed About to News and used DateRange icon
+            "News" to Icons.Default.DateRange
         )
         
         items.forEach { item -> 
