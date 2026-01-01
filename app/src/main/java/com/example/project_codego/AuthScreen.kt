@@ -1,19 +1,436 @@
 package com.example.project_codego
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val AuthBackground = Color(0xFFEFF3F6)
+private val BrandBlue = Color(0xFF0088CC)
+private val TextDark = Color(0xFF333333)
+
 @Composable
-fun AuthScreen() {
+fun AuthScreen(onLoginSuccess: () -> Unit) {
+    var isLogin by remember { mutableStateOf(true) }
+
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AuthBackground)
+            .systemBarsPadding()
     ) {
-        Text(text = "Authentication Screen", fontSize = 24.sp)
+        if (isLogin) {
+            LoginContent(
+                onNavigateToRegister = { isLogin = false },
+                onLogin = onLoginSuccess
+            )
+        } else {
+            RegisterContent(
+                onNavigateToLogin = { isLogin = true },
+                onSignUp = onLoginSuccess
+            )
+        }
     }
+}
+
+@Composable
+fun LoginContent(
+    onNavigateToRegister: () -> Unit,
+    onLogin: () -> Unit
+) {
+    // State variables for input fields
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Logo
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .background(Color.White, CircleShape)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = "ResQ",
+                    color = BrandBlue,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Email
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email or phone number") },
+            placeholder = { Text("johndoe@gmail.com") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
+            ),
+            trailingIcon = {
+                Icon(Icons.Outlined.Person, contentDescription = null)
+            },
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Password
+        var passwordVisible by remember { mutableStateOf(false) }
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
+            ),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val icon = if (passwordVisible) Icons.Default.Lock else Icons.Outlined.Lock
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(icon, contentDescription = null)
+                }
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Login Button
+        Button(
+            onClick = onLogin,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text("LOGIN", fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Sign Up Link
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Don't have an account? ", color = TextDark)
+            Text(
+                "Sign up here",
+                color = BrandBlue,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onNavigateToRegister() }
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Emergency Contacts
+        EmergencyButton()
+    }
+}
+
+@Composable
+fun RegisterContent(
+    onNavigateToLogin: () -> Unit,
+    onSignUp: () -> Unit
+) {
+    val scrollState = rememberScrollState()
+
+    // State variables for registration fields
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var isTermsAccepted by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "Create Your Account",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextDark,
+            modifier = Modifier.padding(top = 32.dp, bottom = 32.dp)
+        )
+
+        // Fields
+        CustomTextField(
+            label = "First Name*",
+            placeholder = "John",
+            value = firstName,
+            onValueChange = { firstName = it }
+        )
+        CustomTextField(
+            label = "Last Name*",
+            placeholder = "Doe",
+            value = lastName,
+            onValueChange = { lastName = it }
+        )
+        CustomTextField(
+            label = "Email*",
+            placeholder = "johndoe@gmail.com",
+            value = email,
+            onValueChange = { email = it }
+        )
+        
+        // Phone Number
+        Text(
+            text = "Phone Number*",
+            color = TextDark,
+            fontSize = 14.sp,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = "PH(+63)",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier.width(110.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    cursorColor = Color.Black
+                )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                placeholder = { Text("12-3456-7890") },
+                modifier = Modifier.weight(1f),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    cursorColor = Color.Black
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                singleLine = true
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Password
+        CustomPasswordField(
+            label = "Password*",
+            value = password,
+            onValueChange = { password = it }
+        )
+        CustomPasswordField(
+            label = "Confirm Password*",
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Terms
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = isTermsAccepted,
+                onCheckedChange = { isTermsAccepted = it }
+            )
+            Text(
+                "I agree to Terms of Service and Privacy Policy.",
+                fontSize = 12.sp,
+                color = TextDark
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Sign Up Button
+        Button(
+            onClick = onSignUp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
+            shape = RoundedCornerShape(25.dp)
+        ) {
+            Text("SIGN UP", fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Login Link
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Already have an account? ", color = TextDark)
+            Text(
+                "Login here",
+                color = BrandBlue,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onNavigateToLogin() }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+
+        EmergencyButton()
+        
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun CustomTextField(
+    label: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+        Text(
+            text = label,
+            color = TextDark,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = { Text(placeholder, color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
+            ),
+            singleLine = true
+        )
+    }
+}
+
+@Composable
+fun CustomPasswordField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    var passwordVisible by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+        Text(
+            text = label,
+            color = TextDark,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
+            ),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val icon = if (passwordVisible) Icons.Default.Lock else Icons.Outlined.Lock
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(icon, contentDescription = null)
+                }
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+    }
+}
+
+@Composable
+fun EmergencyButton() {
+    OutlinedButton(
+        onClick = { },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        border = BorderStroke(1.dp, BrandBlue),
+        shape = RoundedCornerShape(25.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandBlue)
+    ) {
+        Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Icon(Icons.Default.Warning, contentDescription = null, tint = Color.Red, modifier = Modifier.size(16.dp)) // Siren replacement
+        Spacer(modifier = Modifier.width(8.dp))
+        Text("EMERGENCY CONTACTS", fontWeight = FontWeight.Bold)
+    }
+}
+
+@Preview
+@Composable
+fun AuthScreenPreview() {
+    AuthScreen(onLoginSuccess = {})
 }

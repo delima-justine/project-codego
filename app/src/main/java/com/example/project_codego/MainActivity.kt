@@ -59,25 +59,8 @@ fun AppNavigation() {
 
     when (currentScreen) {
         Screen.Onboarding -> OnboardingScreen(onGetStarted = { currentScreen = Screen.Auth })
-        Screen.Auth -> AuthScreenPlaceholder(onLoginSuccess = { currentScreen = Screen.Home })
+        Screen.Auth -> AuthScreen(onLoginSuccess = { currentScreen = Screen.Home })
         Screen.Home -> SharingHubScreen()
-    }
-}
-
-@Composable
-fun AuthScreenPlaceholder(onLoginSuccess: () -> Unit) {
-    // Simple placeholder for Auth Screen to demonstrate flow
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Authentication Page", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onLoginSuccess) {
-                Text("Login / Sign Up")
-            }
-        }
     }
 }
 
