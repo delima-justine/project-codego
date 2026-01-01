@@ -50,8 +50,7 @@ class MainActivity : ComponentActivity() {
 enum class Screen {
     Onboarding,
     Auth,
-    Home, // Sharing Hub
-    EmergencyContacts // New Screen
+    Home
 }
 
 @Composable
@@ -62,14 +61,12 @@ fun AppNavigation() {
         Screen.Onboarding -> OnboardingScreen(onGetStarted = { currentScreen = Screen.Auth })
         Screen.Auth -> AuthScreen(
             onLoginSuccess = { currentScreen = Screen.Home },
-            onNavigateToEmergency = { currentScreen = Screen.EmergencyContacts }
+            onNavigateToEmergency = { /* Handled within Home now */ currentScreen = Screen.Home } 
         )
-        Screen.Home -> SharingHubScreen(onNavigateToEmergency = { currentScreen = Screen.EmergencyContacts })
-        Screen.EmergencyContacts -> EmergencyContactsScreen() // Route to EmergencyContact.kt
+        // Pass onLogout to handle signing out from Profile
+        Screen.Home -> SharingHubScreen(onLogout = { currentScreen = Screen.Auth })
     }
 }
-
-// --- Sharing Hub Code (Main Home Screen) ---
 
 // Color Palette based on the image
 val PrimaryBlue = Color(0xFF0088CC)
@@ -86,19 +83,45 @@ data class Post(
     val content: String,
     val likes: Int,
     val comments: Int,
-    val avatarColor: Color = Color.Gray // Placeholder for image
+    val avatarColor: Color = Color.Gray
 )
+
+@Composable
+fun SharingHubScreen(onLogout: () -> Unit) {
+    // Tab State
+    var currentTab by remember { mutableStateOf("Home") }
+
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                currentTab = currentTab,
+                onTabSelected = { currentTab = it }
+            )
+        },
+        containerColor = BackgroundGray
+    ) { innerPadding ->
+        // Content Switching
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            when (currentTab) {
+                "Home" -> FeedContent()
+                "Emergency" -> EmergencyContactsScreen()
+                "Profile" -> ProfileScreen(onLogout = onLogout)
+                else -> FeedContent() // Default or About
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SharingHubScreen(onNavigateToEmergency: () -> Unit) {
+fun FeedContent() {
     Scaffold(
         topBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 48.dp, bottom = 16.dp), // Adjust top padding for status bar
+                    .padding(top = 32.dp, bottom = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -114,9 +137,6 @@ fun SharingHubScreen(onNavigateToEmergency: () -> Unit) {
                 )
             }
         },
-        bottomBar = {
-            BottomNavigationBar(onNavigateToEmergency = onNavigateToEmergency)
-        },
         containerColor = BackgroundGray
     ) { innerPadding ->
         Column(
@@ -124,26 +144,14 @@ fun SharingHubScreen(onNavigateToEmergency: () -> Unit) {
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            // Content List
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Categories
-                item {
-                    CategorySection()
-                }
-
-                // Share Button
-                item {
-                    ShareExperienceButton()
-                }
-
-                // Posts
-                items(samplePosts) { post ->
-                    PostCard(post)
-                }
+                item { CategorySection() }
+                item { ShareExperienceButton() }
+                items(samplePosts) { post -> PostCard(post) }
             }
         }
     }
@@ -173,7 +181,6 @@ fun CategorySection() {
             }
         }
         
-        // Decorative dark bar from the image
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -182,7 +189,6 @@ fun CategorySection() {
                 .padding(horizontal = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Simple visual representation of the slider bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
@@ -196,7 +202,7 @@ fun CategorySection() {
 @Composable
 fun ShareExperienceButton() {
     Button(
-        onClick = { /* Handle Click */ },
+        onClick = { },
         colors = ButtonDefaults.buttonColors(containerColor = ActionRed),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
@@ -227,7 +233,6 @@ fun PostCard(post: Post) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Header: Avatar + Name + Date
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -235,7 +240,6 @@ fun PostCard(post: Post) {
                         .clip(CircleShape)
                         .background(post.avatarColor)
                 ) {
-                     // In a real app, use AsyncImage here
                      Icon(
                          imageVector = Icons.Default.Person,
                          contentDescription = null,
@@ -252,7 +256,6 @@ fun PostCard(post: Post) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Tag
             Surface(
                 color = TagBlue,
                 shape = RoundedCornerShape(16.dp),
@@ -273,7 +276,6 @@ fun PostCard(post: Post) {
                 }
             }
 
-            // Content
             Text(
                 text = post.content,
                 style = MaterialTheme.typography.bodyMedium,
@@ -286,7 +288,6 @@ fun PostCard(post: Post) {
             
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Actions: Like & Comment
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.FavoriteBorder,
@@ -313,7 +314,7 @@ fun PostCard(post: Post) {
 }
 
 @Composable
-fun BottomNavigationBar(onNavigateToEmergency: () -> Unit) {
+fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -325,14 +326,10 @@ fun BottomNavigationBar(onNavigateToEmergency: () -> Unit) {
             "About" to Icons.Default.Info
         )
         
-        items.forEachIndexed { index, item -> 
+        items.forEach { item -> 
             NavigationBarItem(
-                selected = index == 0,
-                onClick = { 
-                    if (item.first == "Emergency") {
-                        onNavigateToEmergency()
-                    }
-                },
+                selected = currentTab == item.first,
+                onClick = { onTabSelected(item.first) },
                 icon = { Icon(item.second, contentDescription = item.first) },
                 label = { Text(item.first) },
                 colors = NavigationBarItemDefaults.colors(
@@ -345,7 +342,6 @@ fun BottomNavigationBar(onNavigateToEmergency: () -> Unit) {
     }
 }
 
-// Sample Data
 val samplePosts = listOf(
     Post(
         1, "Maria Santos", "12/1/2025", "Advice",

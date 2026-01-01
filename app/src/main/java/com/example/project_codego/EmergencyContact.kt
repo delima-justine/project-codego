@@ -27,7 +27,7 @@ fun EmergencyContactsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 48.dp, bottom = 16.dp), // Adjust for status bar/notch
+                    .padding(top = 32.dp, bottom = 10.dp), // Adjust for status bar/notch
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
