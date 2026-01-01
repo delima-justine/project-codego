@@ -29,7 +29,7 @@ fun NewsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 48.dp, bottom = 16.dp),
+                    .padding(top = 32.dp, bottom = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(

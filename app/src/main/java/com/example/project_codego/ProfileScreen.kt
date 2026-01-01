@@ -48,15 +48,10 @@ fun ProfileScreen(onLogout: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "PH RescQ PH",
+                    text = "Profile",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
-                )
-                Text(
-                    text = "Lokal na Rescue Community ng Pilipinas",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 14.sp
                 )
             }
         },
