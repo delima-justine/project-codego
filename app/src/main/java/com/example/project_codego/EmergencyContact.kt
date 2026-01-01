@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,8 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmergencyContactsScreen() {
+fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
     // Colors matching SharingHubScreen
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
@@ -27,15 +30,49 @@ fun EmergencyContactsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp), // Adjust for status bar/notch
-                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "PH Emergency Contacts",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                // Adjust for status bar/notch (padding top)
+                // We'll wrap TopAppBar or custom header
+                
+                // If onBackClick is provided, show back button. 
+                // Since this screen is used as a tab in Home, we might not always want a back button,
+                // but if used as a standalone screen or if user wants back to feed.
+                
+                if (onBackClick != null) {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = "PH Emergency Contacts",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onBackClick) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = PrimaryBlue
+                        )
+                    )
+                } else {
+                    // Default header style if no back button
+                     Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 48.dp, bottom = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "PH Emergency Contacts",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         },
         containerColor = BackgroundGray

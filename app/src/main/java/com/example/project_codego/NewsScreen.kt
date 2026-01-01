@@ -4,10 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,27 +17,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsScreen() {
+fun NewsScreen(onBackClick: () -> Unit) {
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Latest News",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
+            CenterAlignedTopAppBar(
+                title = { 
+                    Text(
+                        text = "Latest News",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = PrimaryBlue
                 )
-            }
+            )
         },
         containerColor = BackgroundGray
     ) { innerPadding ->
@@ -90,6 +98,6 @@ fun NewsItemCard(index: Int) {
 @Composable
 fun NewsScreenPreview() {
     ProjectcodegoTheme {
-        NewsScreen()
+        NewsScreen(onBackClick = {})
     }
 }

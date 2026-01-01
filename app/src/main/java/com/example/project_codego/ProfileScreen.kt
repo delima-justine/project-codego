@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
@@ -31,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit) {
+fun ProfileScreen(onLogout: () -> Unit, onBackClick: () -> Unit) {
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
     val CardBackground = Color.White
@@ -47,12 +48,26 @@ fun ProfileScreen(onLogout: () -> Unit) {
                     .padding(top = 32.dp, bottom = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Profile",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                    
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Profile",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
+                }
             }
         },
         containerColor = BackgroundGray
@@ -226,6 +241,6 @@ fun ProfileScreen(onLogout: () -> Unit) {
 @Composable
 fun ProfileScreenPreview() {
     ProjectcodegoTheme {
-        ProfileScreen(onLogout = {})
+        ProfileScreen(onLogout = {}, onBackClick = {})
     }
 }

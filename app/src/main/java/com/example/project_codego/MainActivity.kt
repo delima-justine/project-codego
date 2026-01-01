@@ -2,6 +2,7 @@ package com.example.project_codego
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,22 +57,48 @@ enum class Screen {
     CreatePost
 }
 
+data class NavEntry(val screen: Screen, val tab: String = "Home")
+
 @Composable
 fun AppNavigation() {
-    var currentScreen by remember { mutableStateOf(Screen.Onboarding) }
+    // Navigation Stack
+    val backStack = remember { mutableStateListOf(NavEntry(Screen.Onboarding)) }
+    val currentEntry = backStack.last()
 
-    when (currentScreen) {
-        Screen.Onboarding -> OnboardingScreen(onGetStarted = { currentScreen = Screen.Auth })
+    // Function to navigate to a new screen/tab
+    fun navigateTo(screen: Screen, tab: String = "Home") {
+        // Prevent duplicate entries on top
+        if (currentEntry.screen == screen && currentEntry.tab == tab) return
+        backStack.add(NavEntry(screen, tab))
+    }
+
+    // Function to handle back
+    fun goBack() {
+        if (backStack.size > 1) {
+            backStack.removeAt(backStack.lastIndex)
+        }
+    }
+
+    // Handle System Back Button
+    BackHandler(enabled = backStack.size > 1) {
+        goBack()
+    }
+
+    when (currentEntry.screen) {
+        Screen.Onboarding -> OnboardingScreen(onGetStarted = { navigateTo(Screen.Auth) })
         Screen.Auth -> AuthScreen(
-            onLoginSuccess = { currentScreen = Screen.Home },
-            onNavigateToEmergency = { currentScreen = Screen.Home } 
+            onLoginSuccess = { navigateTo(Screen.Home) },
+            onNavigateToEmergency = { navigateTo(Screen.Home, "Emergency") }
         )
         Screen.Home -> SharingHubScreen(
-            onLogout = { currentScreen = Screen.Auth },
-            onNavigateToCreatePost = { currentScreen = Screen.CreatePost }
+            currentTab = currentEntry.tab,
+            onTabSelected = { newTab -> navigateTo(Screen.Home, newTab) },
+            onLogout = { navigateTo(Screen.Auth) },
+            onNavigateToCreatePost = { navigateTo(Screen.CreatePost) },
+            onBackClick = { goBack() } // For manual back buttons in tabs
         )
         Screen.CreatePost -> CreatePostScreen(
-            onBackClick = { currentScreen = Screen.Home }
+            onBackClick = { goBack() }
         )
     }
 }
@@ -94,15 +122,18 @@ data class Post(
 )
 
 @Composable
-fun SharingHubScreen(onLogout: () -> Unit, onNavigateToCreatePost: () -> Unit) {
-    // Tab State
-    var currentTab by remember { mutableStateOf("Home") }
-
+fun SharingHubScreen(
+    currentTab: String,
+    onTabSelected: (String) -> Unit,
+    onLogout: () -> Unit,
+    onNavigateToCreatePost: () -> Unit,
+    onBackClick: () -> Unit
+) {
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
                 currentTab = currentTab,
-                onTabSelected = { currentTab = it }
+                onTabSelected = onTabSelected
             )
         },
         containerColor = BackgroundGray
@@ -111,9 +142,9 @@ fun SharingHubScreen(onLogout: () -> Unit, onNavigateToCreatePost: () -> Unit) {
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (currentTab) {
                 "Home" -> FeedContent(onNavigateToCreatePost)
-                "Emergency" -> EmergencyContactsScreen()
-                "Profile" -> ProfileScreen(onLogout = onLogout)
-                "News" -> NewsScreen()
+                "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
+                "Profile" -> ProfileScreen(onLogout = onLogout, onBackClick = onBackClick)
+                "News" -> NewsScreen(onBackClick = onBackClick)
                 else -> FeedContent(onNavigateToCreatePost) 
             }
         }
