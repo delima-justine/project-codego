@@ -36,7 +36,7 @@ private val BrandBlue = Color(0xFF0088CC)
 private val TextDark = Color(0xFF333333)
 
 @Composable
-fun AuthScreen(onLoginSuccess: () -> Unit) {
+fun AuthScreen(onLoginSuccess: () -> Unit, onNavigateToEmergency: () -> Unit) {
     var isLogin by remember { mutableStateOf(true) }
 
     Box(
@@ -48,12 +48,14 @@ fun AuthScreen(onLoginSuccess: () -> Unit) {
         if (isLogin) {
             LoginContent(
                 onNavigateToRegister = { isLogin = false },
-                onLogin = onLoginSuccess
+                onLogin = onLoginSuccess,
+                onNavigateToEmergency = onNavigateToEmergency
             )
         } else {
             RegisterContent(
                 onNavigateToLogin = { isLogin = true },
-                onSignUp = onLoginSuccess
+                onSignUp = onLoginSuccess,
+                onNavigateToEmergency = onNavigateToEmergency
             )
         }
     }
@@ -62,7 +64,8 @@ fun AuthScreen(onLoginSuccess: () -> Unit) {
 @Composable
 fun LoginContent(
     onNavigateToRegister: () -> Unit,
-    onLogin: () -> Unit
+    onLogin: () -> Unit,
+    onNavigateToEmergency: () -> Unit
 ) {
     // State variables for input fields
     var email by remember { mutableStateOf("") }
@@ -180,14 +183,15 @@ fun LoginContent(
         Spacer(modifier = Modifier.weight(1f))
 
         // Emergency Contacts
-        EmergencyButton()
+        EmergencyButton(onClick = onNavigateToEmergency)
     }
 }
 
 @Composable
 fun RegisterContent(
     onNavigateToLogin: () -> Unit,
-    onSignUp: () -> Unit
+    onSignUp: () -> Unit,
+    onNavigateToEmergency: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -333,7 +337,7 @@ fun RegisterContent(
         
         Spacer(modifier = Modifier.height(24.dp))
 
-        EmergencyButton()
+        EmergencyButton(onClick = onNavigateToEmergency)
         
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -411,9 +415,9 @@ fun CustomPasswordField(
 }
 
 @Composable
-fun EmergencyButton() {
+fun EmergencyButton(onClick: () -> Unit) {
     OutlinedButton(
-        onClick = { },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
@@ -432,5 +436,5 @@ fun EmergencyButton() {
 @Preview
 @Composable
 fun AuthScreenPreview() {
-    AuthScreen(onLoginSuccess = {})
+    AuthScreen(onLoginSuccess = {}, onNavigateToEmergency = {})
 }

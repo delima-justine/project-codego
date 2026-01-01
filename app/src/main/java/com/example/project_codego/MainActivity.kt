@@ -50,7 +50,8 @@ class MainActivity : ComponentActivity() {
 enum class Screen {
     Onboarding,
     Auth,
-    Home // Sharing Hub
+    Home, // Sharing Hub
+    EmergencyContacts // New Screen
 }
 
 @Composable
@@ -59,8 +60,12 @@ fun AppNavigation() {
 
     when (currentScreen) {
         Screen.Onboarding -> OnboardingScreen(onGetStarted = { currentScreen = Screen.Auth })
-        Screen.Auth -> AuthScreen(onLoginSuccess = { currentScreen = Screen.Home })
-        Screen.Home -> SharingHubScreen()
+        Screen.Auth -> AuthScreen(
+            onLoginSuccess = { currentScreen = Screen.Home },
+            onNavigateToEmergency = { currentScreen = Screen.EmergencyContacts }
+        )
+        Screen.Home -> SharingHubScreen(onNavigateToEmergency = { currentScreen = Screen.EmergencyContacts })
+        Screen.EmergencyContacts -> EmergencyContactsScreen() // Route to EmergencyContact.kt
     }
 }
 
@@ -86,7 +91,7 @@ data class Post(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SharingHubScreen() {
+fun SharingHubScreen(onNavigateToEmergency: () -> Unit) {
     Scaffold(
         topBar = {
             Column(
@@ -110,7 +115,7 @@ fun SharingHubScreen() {
             }
         },
         bottomBar = {
-            BottomNavigationBar()
+            BottomNavigationBar(onNavigateToEmergency = onNavigateToEmergency)
         },
         containerColor = BackgroundGray
     ) { innerPadding ->
@@ -308,7 +313,7 @@ fun PostCard(post: Post) {
 }
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(onNavigateToEmergency: () -> Unit) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -323,7 +328,11 @@ fun BottomNavigationBar() {
         items.forEachIndexed { index, item -> 
             NavigationBarItem(
                 selected = index == 0,
-                onClick = { },
+                onClick = { 
+                    if (item.first == "Emergency") {
+                        onNavigateToEmergency()
+                    }
+                },
                 icon = { Icon(item.second, contentDescription = item.first) },
                 label = { Text(item.first) },
                 colors = NavigationBarItemDefaults.colors(
