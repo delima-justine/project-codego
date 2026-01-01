@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -106,7 +107,8 @@ fun SharingHubScreen(onLogout: () -> Unit) {
                 "Home" -> FeedContent()
                 "Emergency" -> EmergencyContactsScreen()
                 "Profile" -> ProfileScreen(onLogout = onLogout)
-                else -> FeedContent() // Default or About
+                "News" -> NewsScreen() // Link News Page
+                else -> FeedContent() 
             }
         }
     }
@@ -121,17 +123,17 @@ fun FeedContent() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp),
+                    .padding(top = 48.dp, bottom = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "PH RescQ PH",
+                    text = "PH ResQ PH",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
                 Text(
-                    text = "Lokal na Rescue Community ng Pilipinas",
+                    text = "Local Rescue App",
                     color = Color.White.copy(alpha = 0.9f),
                     fontSize = 14.sp
                 )
@@ -323,7 +325,7 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
             "Home" to Icons.Default.Home,
             "Emergency" to Icons.Default.Phone,
             "Profile" to Icons.Default.Person,
-            "About" to Icons.Default.Info
+            "News" to Icons.Default.DateRange // Changed About to News and used DateRange icon
         )
         
         items.forEach { item -> 
