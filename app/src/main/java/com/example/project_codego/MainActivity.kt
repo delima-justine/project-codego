@@ -23,20 +23,24 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project_codego.dto.UserPost
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import com.example.project_codego.viewmodel.PostViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,25 +65,20 @@ data class NavEntry(val screen: Screen, val tab: String = "Home")
 
 @Composable
 fun AppNavigation() {
-    // Navigation Stack
     val backStack = remember { mutableStateListOf(NavEntry(Screen.Onboarding)) }
     val currentEntry = backStack.last()
 
-    // Function to navigate to a new screen/tab
     fun navigateTo(screen: Screen, tab: String = "Home") {
-        // Prevent duplicate entries on top
         if (currentEntry.screen == screen && currentEntry.tab == tab) return
         backStack.add(NavEntry(screen, tab))
     }
 
-    // Function to handle back
     fun goBack() {
         if (backStack.size > 1) {
             backStack.removeAt(backStack.lastIndex)
         }
     }
 
-    // Handle System Back Button
     BackHandler(enabled = backStack.size > 1) {
         goBack()
     }
@@ -95,7 +94,7 @@ fun AppNavigation() {
             onTabSelected = { newTab -> navigateTo(Screen.Home, newTab) },
             onLogout = { navigateTo(Screen.Auth) },
             onNavigateToCreatePost = { navigateTo(Screen.CreatePost) },
-            onBackClick = { goBack() } // For manual back buttons in tabs
+            onBackClick = { goBack() }
         )
         Screen.CreatePost -> CreatePostScreen(
             onBackClick = { goBack() }
@@ -103,23 +102,11 @@ fun AppNavigation() {
     }
 }
 
-// Color Palette based on the image
 val PrimaryBlue = Color(0xFF0088CC)
 val ActionRed = Color(0xFFEE2200)
 val BackgroundGray = Color(0xFFF0F2F5)
 val TagBlue = Color(0xFFE3F2FD)
 val TagTextBlue = Color(0xFF1976D2)
-
-data class Post(
-    val id: Int,
-    val authorName: String,
-    val date: String,
-    val tag: String,
-    val content: String,
-    val likes: Int,
-    val comments: Int,
-    val avatarColor: Color = Color.Gray
-)
 
 @Composable
 fun SharingHubScreen(
@@ -138,7 +125,6 @@ fun SharingHubScreen(
         },
         containerColor = BackgroundGray
     ) { innerPadding ->
-        // Content Switching
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (currentTab) {
                 "Home" -> FeedContent(onNavigateToCreatePost)
@@ -153,7 +139,12 @@ fun SharingHubScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedContent(onNavigateToCreatePost: () -> Unit) {
+fun FeedContent(
+    onNavigateToCreatePost: () -> Unit,
+    viewModel: PostViewModel = viewModel()
+) {
+    val posts by viewModel.posts.collectAsState()
+
     Scaffold(
         topBar = {
             Column(
@@ -190,7 +181,18 @@ fun FeedContent(onNavigateToCreatePost: () -> Unit) {
             ) {
                 item { CategorySection() }
                 item { ShareExperienceButton(onClick = onNavigateToCreatePost) }
-                items(samplePosts) { post -> PostCard(post) }
+                
+                if (posts.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                            Text("No posts yet. Be the first to share!", color = Color.Gray)
+                        }
+                    }
+                } else {
+                    items(posts) { post -> 
+                        PostCard(post) 
+                    }
+                }
             }
         }
     }
@@ -218,22 +220,6 @@ fun CategorySection() {
                     Text(text = category)
                 }
             }
-        }
-        
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp)
-                .background(Color(0xFF333333), RoundedCornerShape(4.dp))
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .height(8.dp)
-                    .background(Color.Gray, RoundedCornerShape(4.dp))
-            )
         }
     }
 }
@@ -263,7 +249,10 @@ fun ShareExperienceButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun PostCard(post: Post) {
+fun PostCard(post: UserPost) {
+    val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+    val dateString = sdf.format(Date(post.timestamp))
+
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -277,7 +266,7 @@ fun PostCard(post: Post) {
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(post.avatarColor)
+                        .background(Color.Gray)
                 ) {
                      Icon(
                          imageVector = Icons.Default.Person,
@@ -289,7 +278,7 @@ fun PostCard(post: Post) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(text = post.authorName, fontWeight = FontWeight.Bold)
-                    Text(text = post.date, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
             }
 
@@ -311,7 +300,7 @@ fun PostCard(post: Post) {
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = post.tag, color = TagTextBlue, fontSize = 12.sp)
+                    Text(text = post.category, color = TagTextBlue, fontSize = 12.sp)
                 }
             }
 
@@ -335,7 +324,7 @@ fun PostCard(post: Post) {
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "${post.likes}", color = Color.Gray)
+                Text(text = "0", color = Color.Gray)
 
                 Spacer(modifier = Modifier.width(24.dp))
 
@@ -346,7 +335,7 @@ fun PostCard(post: Post) {
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "${post.comments}", color = Color.Gray)
+                Text(text = "0", color = Color.Gray)
             }
         }
     }
@@ -380,21 +369,3 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
         }
     }
 }
-
-val samplePosts = listOf(
-    Post(
-        1, "Maria Santos", "12/1/2025", "Advice",
-        "Hello, I have been experiencing this kind of pain after a slipping accident. What should I do?",
-        0, 0, Color(0xFF8D6E63)
-    ),
-    Post(
-        2, "Anna Smith", "12/1/2025", "Advice",
-        "HELLO WORLD? penge advice on how to prepare for the incoming typhoon.",
-        5, 2, Color(0xFF90CAF9)
-    ),
-    Post(
-        3, "John Doe", "11/30/2025", "Story",
-        "Just wanted to share how our community helped each other during the flood.",
-        12, 4, Color(0xFFA5D6A7)
-    )
-)

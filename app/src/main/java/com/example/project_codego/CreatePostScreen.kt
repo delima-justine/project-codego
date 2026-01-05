@@ -27,15 +27,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import com.example.project_codego.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePostScreen(onBackClick: () -> Unit) {
+fun CreatePostScreen(
+    onBackClick: () -> Unit,
+    viewModel: PostViewModel = viewModel()
+) {
     val BackgroundGray = Color(0xFFF0F2F5)
     val PrimaryBlue = Color(0xFF0088CC)
     val CardWhite = Color.White
-    val ActionRed = Color(0xFFE57373) // Slightly lighter red for the button
+    val ActionRed = Color(0xFFE57373)
+
+    var postContent by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("General") }
 
     Scaffold(
         topBar = {
@@ -78,7 +86,7 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF8D6E63)) // Placeholder Avatar Color
+                            .background(Color(0xFF8D6E63))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -89,7 +97,7 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Maria Santos", fontWeight = FontWeight.Bold)
+                        Text("Juan Dela Cruz", fontWeight = FontWeight.Bold)
                         Text("Sharing to RescQ PH community", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
@@ -109,15 +117,19 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         CategoryItem(
-                            icon = Icons.Default.Favorite, // Survival Story placeholder
+                            icon = Icons.Default.Favorite,
                             label = "Survival Story",
                             color = Color(0xFFFFB74D),
+                            isSelected = selectedCategory == "Survival Story",
+                            onClick = { selectedCategory = "Survival Story" },
                             modifier = Modifier.weight(1f)
                         )
                         CategoryItem(
-                            icon = Icons.Default.Warning, // Replaced Bolt with Warning
+                            icon = Icons.Default.Warning,
                             label = "Disaster Tip",
                             color = Color(0xFFE57373),
+                            isSelected = selectedCategory == "Disaster Tip",
+                            onClick = { selectedCategory = "Disaster Tip" },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -127,16 +139,19 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         CategoryItem(
-                            icon = Icons.Default.ThumbUp, // Replaced Lightbulb with ThumbUp
+                            icon = Icons.Default.ThumbUp,
                             label = "Advice",
                             color = Color(0xFFFFD54F),
+                            isSelected = selectedCategory == "Advice",
+                            onClick = { selectedCategory = "Advice" },
                             modifier = Modifier.weight(1f)
                         )
                         CategoryItem(
-                            icon = Icons.Default.Email, // Replaced Message with Email
+                            icon = Icons.Default.Email,
                             label = "General",
-                            color = Color(0xFF90CAF9), // Selected Blue
-                            isSelected = true,
+                            color = Color(0xFF90CAF9),
+                            isSelected = selectedCategory == "General",
+                            onClick = { selectedCategory = "General" },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -153,8 +168,8 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
+                        value = postContent,
+                        onValueChange = { postContent = it },
                         placeholder = { Text("Share your thoughts with the community...", color = Color.Gray) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -168,7 +183,7 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "0 characters",
+                        text = "${postContent.length} characters",
                         fontSize = 12.sp,
                         color = Color.Gray,
                         modifier = Modifier.align(Alignment.End)
@@ -187,7 +202,7 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
                     verticalAlignment = Alignment.Top
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info, // Placeholder for Image Icon
+                        imageVector = Icons.Default.Info,
                         contentDescription = null,
                         tint = PrimaryBlue,
                         modifier = Modifier.size(20.dp)
@@ -204,19 +219,25 @@ fun CreatePostScreen(onBackClick: () -> Unit) {
 
             // Share Post Button
             Button(
-                onClick = { },
+                onClick = { 
+                    if (postContent.isNotBlank()) {
+                        viewModel.createPost(postContent, selectedCategory)
+                        onBackClick()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = ActionRed),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                enabled = postContent.isNotBlank()
             ) {
                 Text("Share Post", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             
             // Guidelines
             Surface(
-                color = Color(0xFFFFF9C4), // Light Yellow
+                color = Color(0xFFFFF9C4),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color(0xFFFFF59D))
             ) {
@@ -239,6 +260,7 @@ fun CategoryItem(
     label: String,
     color: Color,
     isSelected: Boolean = false,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val borderColor = if (isSelected) Color(0xFF2196F3) else Color.LightGray
@@ -247,7 +269,7 @@ fun CategoryItem(
     Surface(
         modifier = modifier
             .height(80.dp)
-            .clickable { },
+            .clickable { onClick() },
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(1.dp, borderColor),
         color = containerColor
