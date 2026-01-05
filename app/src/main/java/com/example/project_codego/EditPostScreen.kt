@@ -24,16 +24,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.project_codego.ui.theme.ProjectcodegoTheme
 import com.example.project_codego.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePostScreen(
+fun EditPostScreen(
+    postId: String,
+    initialContent: String,
+    initialCategory: String,
     onBackClick: () -> Unit,
     viewModel: PostViewModel = viewModel()
 ) {
@@ -41,14 +42,15 @@ fun CreatePostScreen(
     val PrimaryBlue = Color(0xFF0088CC)
     val CardWhite = Color.White
     val ActionRed = Color(0xFFE57373)
+    val TextDark = Color(0xFF333333)
 
-    var postContent by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("General") }
+    var postContent by remember { mutableStateOf(initialContent) }
+    var selectedCategory by remember { mutableStateOf(initialCategory) }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Create Post", fontWeight = FontWeight.Bold) },
+                title = { Text("Edit Post", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     TextButton(onClick = onBackClick) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -98,12 +100,12 @@ fun CreatePostScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text("Juan Dela Cruz", fontWeight = FontWeight.Bold)
-                        Text("Sharing to RescQ PH community", fontSize = 12.sp, color = Color.Gray)
+                        Text("Editing Post", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
             }
 
-            // Category Selection
+            // Category Selection (Optional if you want to allow changing category)
             Card(
                 colors = CardDefaults.cardColors(containerColor = CardWhite),
                 shape = RoundedCornerShape(12.dp)
@@ -158,13 +160,13 @@ fun CreatePostScreen(
                 }
             }
 
-            // Share Your Experience Input
+            // Edit Content Input
             Card(
                 colors = CardDefaults.cardColors(containerColor = CardWhite),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Share Your Experience", fontWeight = FontWeight.Bold, color = TextDark)
+                    Text("Edit Your Experience", fontWeight = FontWeight.Bold, color = TextDark)
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     OutlinedTextField(
@@ -193,37 +195,12 @@ fun CreatePostScreen(
                 }
             }
 
-            // Tip Box
-            Surface(
-                color = Color(0xFFE3F2FD),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color(0xFF90CAF9))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Tip: For now, you can describe images in your text. Photo upload feature coming soon!",
-                        fontSize = 13.sp,
-                        color = TextDark,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
-
-            // Share Post Button
+            // Save Post Button
             Button(
                 onClick = { 
                     if (postContent.isNotBlank()) {
-                        viewModel.createPost(postContent, selectedCategory)
+                        viewModel.updatePost(postId, postContent)
+                        // In a real app, you might also want to update the category if your backend supports it
                         onBackClick()
                     }
                 },
@@ -234,69 +211,8 @@ fun CreatePostScreen(
                 shape = RoundedCornerShape(12.dp),
                 enabled = postContent.isNotBlank()
             ) {
-                Text("Share Post", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-            
-            // Guidelines
-            Surface(
-                color = Color(0xFFFFF9C4),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color(0xFFFFF59D))
-            ) {
-                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                     Text("Community Guidelines", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                 }
+                Text("Save Changes", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
-    }
-}
-
-@Composable
-fun CategoryItem(
-    icon: ImageVector,
-    label: String,
-    color: Color,
-    isSelected: Boolean = false,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val borderColor = if (isSelected) Color(0xFF2196F3) else Color.LightGray
-    val containerColor = if (isSelected) Color(0xFFE3F2FD) else Color.White
-    
-    Surface(
-        modifier = modifier
-            .height(80.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, borderColor),
-        color = containerColor
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(imageVector = icon, contentDescription = null, tint = color)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = label, 
-                fontSize = 12.sp, 
-                color = if (isSelected) Color(0xFF1976D2) else Color.Gray
-            )
-        }
-    }
-}
-
-private val TextDark = Color(0xFF333333)
-
-@Preview(showBackground = true)
-@Composable
-fun CreatePostScreenPreview() {
-    ProjectcodegoTheme {
-        CreatePostScreen(onBackClick = {})
     }
 }

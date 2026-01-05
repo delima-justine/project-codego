@@ -15,18 +15,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,19 +57,32 @@ enum class Screen {
     Onboarding,
     Auth,
     Home,
-    CreatePost
+    CreatePost,
+    EditPost
 }
 
-data class NavEntry(val screen: Screen, val tab: String = "Home")
+data class NavEntry(
+    val screen: Screen,
+    val tab: String = "Home",
+    val postId: String? = null,
+    val postContent: String? = null,
+    val postCategory: String? = null
+)
 
 @Composable
 fun AppNavigation() {
     val backStack = remember { mutableStateListOf(NavEntry(Screen.Onboarding)) }
     val currentEntry = backStack.last()
 
-    fun navigateTo(screen: Screen, tab: String = "Home") {
+    fun navigateTo(
+        screen: Screen,
+        tab: String = "Home",
+        postId: String? = null,
+        postContent: String? = null,
+        postCategory: String? = null
+    ) {
         if (currentEntry.screen == screen && currentEntry.tab == tab) return
-        backStack.add(NavEntry(screen, tab))
+        backStack.add(NavEntry(screen, tab, postId, postContent, postCategory))
     }
 
     fun goBack() {
@@ -94,9 +106,18 @@ fun AppNavigation() {
             onTabSelected = { newTab -> navigateTo(Screen.Home, newTab) },
             onLogout = { navigateTo(Screen.Auth) },
             onNavigateToCreatePost = { navigateTo(Screen.CreatePost) },
+            onNavigateToEditPost = { id, content, category ->
+                navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
+            },
             onBackClick = { goBack() }
         )
         Screen.CreatePost -> CreatePostScreen(
+            onBackClick = { goBack() }
+        )
+        Screen.EditPost -> EditPostScreen(
+            postId = currentEntry.postId ?: "",
+            initialContent = currentEntry.postContent ?: "",
+            initialCategory = currentEntry.postCategory ?: "",
             onBackClick = { goBack() }
         )
     }
@@ -114,6 +135,7 @@ fun SharingHubScreen(
     onTabSelected: (String) -> Unit,
     onLogout: () -> Unit,
     onNavigateToCreatePost: () -> Unit,
+    onNavigateToEditPost: (String, String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
     Scaffold(
@@ -127,11 +149,11 @@ fun SharingHubScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (currentTab) {
-                "Home" -> FeedContent(onNavigateToCreatePost)
+                "Home" -> FeedContent(onNavigateToCreatePost, onNavigateToEditPost)
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
                 "Profile" -> ProfileScreen(onLogout = onLogout, onBackClick = onBackClick)
                 "News" -> NewsScreen(onBackClick = onBackClick)
-                else -> FeedContent(onNavigateToCreatePost) 
+                else -> FeedContent(onNavigateToCreatePost, onNavigateToEditPost) 
             }
         }
     }
@@ -141,6 +163,7 @@ fun SharingHubScreen(
 @Composable
 fun FeedContent(
     onNavigateToCreatePost: () -> Unit,
+    onNavigateToEditPost: (String, String, String) -> Unit,
     viewModel: PostViewModel = viewModel()
 ) {
     val posts by viewModel.posts.collectAsState()
@@ -190,7 +213,9 @@ fun FeedContent(
                     }
                 } else {
                     items(posts) { post -> 
-                        PostCard(post) 
+                        PostCard(post, viewModel, onEditClick = {
+                            onNavigateToEditPost(post.id, post.content, post.category)
+                        })
                     }
                 }
             }
@@ -228,7 +253,7 @@ fun CategorySection() {
 fun ShareExperienceButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = ActionRed),
+        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -249,9 +274,10 @@ fun ShareExperienceButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun PostCard(post: UserPost) {
+fun PostCard(post: UserPost, viewModel: PostViewModel, onEditClick: () -> Unit) {
     val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     val dateString = sdf.format(Date(post.timestamp))
+    var expanded by remember { mutableStateOf(false) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -261,7 +287,10 @@ fun PostCard(post: UserPost) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -276,9 +305,37 @@ fun PostCard(post: UserPost) {
                      )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(text = post.authorName, fontWeight = FontWeight.Bold)
                     Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                }
+                
+                // Kebab Menu
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Options")
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                expanded = false
+                                onEditClick()
+                            },
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                viewModel.deletePost(post.id)
+                                expanded = false
+                            },
+                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+                        )
+                    }
                 }
             }
 
