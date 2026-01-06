@@ -27,15 +27,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
+import com.example.project_codego.ui.theme.ProjectcodegoTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
     onBackClick: () -> Unit,
-    viewModel: PostViewModel = viewModel()
+    postViewModel: PostViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val BackgroundGray = Color(0xFFF0F2F5)
     val PrimaryBlue = Color(0xFF0088CC)
@@ -44,6 +48,9 @@ fun CreatePostScreen(
 
     var postContent by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("General") }
+
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "Rescue User"
 
     Scaffold(
         topBar = {
@@ -97,7 +104,7 @@ fun CreatePostScreen(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Juan Dela Cruz", fontWeight = FontWeight.Bold)
+                        Text(displayName, fontWeight = FontWeight.Bold)
                         Text("Sharing to RescQ PH community", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
@@ -223,7 +230,7 @@ fun CreatePostScreen(
             Button(
                 onClick = { 
                     if (postContent.isNotBlank()) {
-                        viewModel.createPost(postContent, selectedCategory)
+                        postViewModel.createPost(postContent, selectedCategory)
                         onBackClick()
                     }
                 },

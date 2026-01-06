@@ -29,10 +29,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onBackClick: () -> Unit) {
+fun ProfileScreen(
+    onLogout: () -> Unit,
+    onBackClick: () -> Unit,
+    viewModel: AuthViewModel = viewModel()
+) {
+    val currentUser by viewModel.currentUser.collectAsState()
+    val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "Rescue User"
+    val email = currentUser?.email ?: "No Email"
+    val uid = currentUser?.uid ?: "Unknown"
+
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
     val CardBackground = Color.White
@@ -128,13 +141,13 @@ fun ProfileScreen(onLogout: () -> Unit, onBackClick: () -> Unit) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Maria Santos",
+                            text = displayName,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
                             color = TextDark
                         )
                         Text(
-                            text = "maria@rescueph.com",
+                            text = email,
                             fontSize = 14.sp,
                             color = Color.Gray,
                             modifier = Modifier.padding(top = 4.dp)
@@ -179,7 +192,10 @@ fun ProfileScreen(onLogout: () -> Unit, onBackClick: () -> Unit) {
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    TextButton(onClick = onLogout) {
+                    TextButton(onClick = {
+                        viewModel.logout()
+                        onLogout()
+                    }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = null, tint = ActionRed)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Sign Out", color = ActionRed, fontSize = 16.sp)
@@ -214,7 +230,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBackClick: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Email", color = Color.Gray, fontSize = 14.sp)
-                        Text("maria@rescueph.com", color = TextDark, fontSize = 14.sp)
+                        Text(email, color = TextDark, fontSize = 14.sp)
                     }
                     
                     Spacer(modifier = Modifier.height(12.dp))
@@ -225,7 +241,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBackClick: () -> Unit) {
                     ) {
                         Text("Account ID", color = Color.Gray, fontSize = 14.sp)
                         Text(
-                            "5b35491f-f065-4501-9d4e-fbdea7f93498",
+                            uid,
                             color = TextDark,
                             fontSize = 12.sp,
                             maxLines = 1

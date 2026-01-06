@@ -69,7 +69,7 @@ fun AuthScreen(
         } else {
             RegisterContent(
                 onNavigateToLogin = { isLogin = true },
-                onSignUp = { email, password -> viewModel.register(email, password) },
+                onSignUp = { email, password, firstName, lastName -> viewModel.register(email, password, firstName, lastName) },
                 onNavigateToEmergency = onNavigateToEmergency,
                 authState = authState
             )
@@ -223,7 +223,7 @@ fun LoginContent(
 @Composable
 fun RegisterContent(
     onNavigateToLogin: () -> Unit,
-    onSignUp: (String, String) -> Unit,
+    onSignUp: (String, String, String, String) -> Unit,
     onNavigateToEmergency: () -> Unit,
     authState: AuthState
 ) {
@@ -359,7 +359,7 @@ fun RegisterContent(
         Button(
             onClick = { 
                 if (isTermsAccepted && password == confirmPassword) {
-                    onSignUp(email, password)
+                    onSignUp(email, password, firstName, lastName)
                 }
             },
             modifier = Modifier

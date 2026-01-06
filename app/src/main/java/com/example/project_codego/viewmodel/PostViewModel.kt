@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.google.firebase.auth.FirebaseAuth
+
 class PostViewModel : ViewModel() {
     private val firestore = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
     private val postsCollection = firestore.collection("posts")
 
     private val _posts = MutableStateFlow<List<UserPost>>(emptyList())
@@ -24,15 +27,18 @@ class PostViewModel : ViewModel() {
     // 1. CREATE
     fun createPost(content: String, category: String) {
         viewModelScope.launch {
-            val newPostRef = postsCollection.document() // Generate random ID
-            val post = UserPost(
-                id = newPostRef.id,
-                userId = "user_123", // Hardcode for demo or use Auth ID
-                authorName = "Juan Dela Cruz",
-                content = content,
-                category = category
-            )
-            newPostRef.set(post)
+            val user = auth.currentUser
+            if (user != null) {
+                val newPostRef = postsCollection.document() // Generate random ID
+                val post = UserPost(
+                    id = newPostRef.id,
+                    userId = user.uid,
+                    authorName = user.displayName ?: user.email?.substringBefore("@") ?: "Anonymous",
+                    content = content,
+                    category = category
+                )
+                newPostRef.set(post)
+            }
         }
     }
 
