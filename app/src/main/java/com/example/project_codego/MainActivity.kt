@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.dto.UserPost
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -164,9 +165,12 @@ fun SharingHubScreen(
 fun FeedContent(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
-    viewModel: PostViewModel = viewModel()
+    postViewModel: PostViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
-    val posts by viewModel.posts.collectAsState()
+    val posts by postViewModel.posts.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val currentUserId = currentUser?.uid
 
     Scaffold(
         topBar = {
@@ -213,9 +217,14 @@ fun FeedContent(
                     }
                 } else {
                     items(posts) { post -> 
-                        PostCard(post, viewModel, onEditClick = {
-                            onNavigateToEditPost(post.id, post.content, post.category)
-                        })
+                        PostCard(
+                            post = post, 
+                            viewModel = postViewModel, 
+                            currentUserId = currentUserId,
+                            onEditClick = {
+                                onNavigateToEditPost(post.id, post.content, post.category)
+                            }
+                        )
                     }
                 }
             }
@@ -274,7 +283,12 @@ fun ShareExperienceButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun PostCard(post: UserPost, viewModel: PostViewModel, onEditClick: () -> Unit) {
+fun PostCard(
+    post: UserPost, 
+    viewModel: PostViewModel, 
+    currentUserId: String?,
+    onEditClick: () -> Unit
+) {
     val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     val dateString = sdf.format(Date(post.timestamp))
     var expanded by remember { mutableStateOf(false) }
@@ -310,31 +324,33 @@ fun PostCard(post: UserPost, viewModel: PostViewModel, onEditClick: () -> Unit) 
                     Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
                 
-                // Kebab Menu
-                Box {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Options")
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Edit") },
-                            onClick = {
-                                expanded = false
-                                onEditClick()
-                            },
-                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Delete") },
-                            onClick = {
-                                viewModel.deletePost(post.id)
-                                expanded = false
-                            },
-                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
-                        )
+                // Kebab Menu (Only if owner)
+                if (currentUserId != null && post.userId == currentUserId) {
+                    Box {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Options")
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = {
+                                    expanded = false
+                                    onEditClick()
+                                },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Delete") },
+                                onClick = {
+                                    viewModel.deletePost(post.id)
+                                    expanded = false
+                                },
+                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+                            )
+                        }
                     }
                 }
             }
