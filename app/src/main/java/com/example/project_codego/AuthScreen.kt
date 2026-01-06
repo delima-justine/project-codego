@@ -30,14 +30,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project_codego.viewmodel.AuthState
+import com.example.project_codego.viewmodel.AuthViewModel
 
 private val AuthBackground = Color(0xFFEFF3F6)
 private val BrandBlue = Color(0xFF0088CC)
 private val TextDark = Color(0xFF333333)
 
 @Composable
-fun AuthScreen(onLoginSuccess: () -> Unit, onNavigateToEmergency: () -> Unit) {
+fun AuthScreen(
+    onLoginSuccess: () -> Unit,
+    onNavigateToEmergency: () -> Unit,
+    viewModel: AuthViewModel = viewModel()
+) {
     var isLogin by remember { mutableStateOf(true) }
+    val authState by viewModel.authState.collectAsState()
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            onLoginSuccess()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -48,14 +62,16 @@ fun AuthScreen(onLoginSuccess: () -> Unit, onNavigateToEmergency: () -> Unit) {
         if (isLogin) {
             LoginContent(
                 onNavigateToRegister = { isLogin = false },
-                onLogin = onLoginSuccess,
-                onNavigateToEmergency = onNavigateToEmergency
+                onLogin = { email, password -> viewModel.login(email, password) },
+                onNavigateToEmergency = onNavigateToEmergency,
+                authState = authState
             )
         } else {
             RegisterContent(
                 onNavigateToLogin = { isLogin = true },
-                onSignUp = onLoginSuccess,
-                onNavigateToEmergency = onNavigateToEmergency
+                onSignUp = { email, password -> viewModel.register(email, password) },
+                onNavigateToEmergency = onNavigateToEmergency,
+                authState = authState
             )
         }
     }
@@ -64,8 +80,9 @@ fun AuthScreen(onLoginSuccess: () -> Unit, onNavigateToEmergency: () -> Unit) {
 @Composable
 fun LoginContent(
     onNavigateToRegister: () -> Unit,
-    onLogin: () -> Unit,
-    onNavigateToEmergency: () -> Unit
+    onLogin: (String, String) -> Unit,
+    onNavigateToEmergency: () -> Unit,
+    authState: AuthState
 ) {
     // State variables for input fields
     var email by remember { mutableStateOf("") }
@@ -153,18 +170,34 @@ fun LoginContent(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (authState is AuthState.Error) {
+            Text(
+                text = authState.message,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Login Button
         Button(
-            onClick = onLogin,
+            onClick = { onLogin(email, password) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-            shape = RoundedCornerShape(25.dp)
+            shape = RoundedCornerShape(25.dp),
+            enabled = authState !is AuthState.Loading
         ) {
-            Text("LOGIN", fontWeight = FontWeight.Bold)
+            if (authState is AuthState.Loading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text("LOGIN", fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -190,8 +223,9 @@ fun LoginContent(
 @Composable
 fun RegisterContent(
     onNavigateToLogin: () -> Unit,
-    onSignUp: () -> Unit,
-    onNavigateToEmergency: () -> Unit
+    onSignUp: (String, String) -> Unit,
+    onNavigateToEmergency: () -> Unit,
+    authState: AuthState
 ) {
     val scrollState = rememberScrollState()
 
@@ -293,7 +327,18 @@ fun RegisterContent(
             onValueChange = { confirmPassword = it }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (authState is AuthState.Error) {
+            Text(
+                text = authState.message,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Terms
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -312,14 +357,23 @@ fun RegisterContent(
 
         // Sign Up Button
         Button(
-            onClick = onSignUp,
+            onClick = { 
+                if (isTermsAccepted && password == confirmPassword) {
+                    onSignUp(email, password)
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
-            shape = RoundedCornerShape(25.dp)
+            shape = RoundedCornerShape(25.dp),
+            enabled = authState !is AuthState.Loading && isTermsAccepted
         ) {
-            Text("SIGN UP", fontWeight = FontWeight.Bold)
+            if (authState is AuthState.Loading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text("SIGN UP", fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
