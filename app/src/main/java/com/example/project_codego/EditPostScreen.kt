@@ -26,7 +26,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +39,8 @@ fun EditPostScreen(
     initialContent: String,
     initialCategory: String,
     onBackClick: () -> Unit,
-    viewModel: PostViewModel = viewModel()
+    viewModel: PostViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val BackgroundGray = Color(0xFFF0F2F5)
     val PrimaryBlue = Color(0xFF0088CC)
@@ -46,6 +50,9 @@ fun EditPostScreen(
 
     var postContent by remember { mutableStateOf(initialContent) }
     var selectedCategory by remember { mutableStateOf(initialCategory) }
+
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "Rescue User"
 
     Scaffold(
         topBar = {
@@ -99,7 +106,7 @@ fun EditPostScreen(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Juan Dela Cruz", fontWeight = FontWeight.Bold)
+                        Text(displayName, fontWeight = FontWeight.Bold)
                         Text("Editing Post", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
