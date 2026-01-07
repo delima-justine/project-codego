@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -153,7 +154,7 @@ fun SharingHubScreen(
                 "Home" -> FeedContent(onNavigateToCreatePost, onNavigateToEditPost)
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
                 "Profile" -> ProfileScreen(onLogout = onLogout, onBackClick = onBackClick)
-                "News" -> NewsScreen(onBackClick = onBackClick)
+                "Tracker" -> TrackerScreen(onBackClick = onBackClick)
                 else -> FeedContent(onNavigateToCreatePost, onNavigateToEditPost) 
             }
         }
@@ -479,7 +480,7 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
             "Home" to Icons.Default.Home,
             "Emergency" to Icons.Default.Phone,
             "Profile" to Icons.Default.Person,
-            "News" to Icons.Default.DateRange
+            "Tracker" to Icons.Default.LocationOn
         )
         
         items.forEach { item -> 
