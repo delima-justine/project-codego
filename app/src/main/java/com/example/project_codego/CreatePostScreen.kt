@@ -55,7 +55,7 @@ fun CreatePostScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Create Post", fontWeight = FontWeight.Bold) },
+                title = { Text("Create Post", fontWeight = FontWeight.Bold, color = Color.Black) },
                 navigationIcon = {
                     TextButton(onClick = onBackClick) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -237,11 +237,16 @@ fun CreatePostScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryBlue,
+                    contentColor = Color.White,
+                    disabledContainerColor = PrimaryBlue.copy(alpha = 0.5f),
+                    disabledContentColor = Color.White
+                ),
                 shape = RoundedCornerShape(12.dp),
                 enabled = postContent.isNotBlank()
             ) {
-                Text("Share Post", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Share Post", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
             }
             
             // Guidelines
