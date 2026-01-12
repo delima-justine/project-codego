@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.viewmodel.AuthState
 import com.example.project_codego.viewmodel.AuthViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 private val AuthBackground = Color(0xFFEFF3F6)
 private val BrandBlue = Color(0xFF0088CC)
@@ -57,7 +59,7 @@ fun AuthScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(AuthBackground)
-            .systemBarsPadding()
+            .statusBarsPadding()
     ) {
         if (isLogin) {
             LoginContent(
@@ -93,33 +95,25 @@ fun LoginContent(
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Logo
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .background(Color.White, CircleShape)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = Color.Red,
-                    modifier = Modifier.size(40.dp)
-                )
-                Text(
-                    text = "ResQ",
-                    color = BrandBlue,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(32.dp))
         
-        Spacer(modifier = Modifier.height(48.dp))
+        // Logo
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "App Logo",
+            modifier = Modifier
+                .size(180.dp)
+                .padding(bottom = 8.dp)
+        )
+        
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Email
         OutlinedTextField(
@@ -132,14 +126,18 @@ fun LoginContent(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
-                cursorColor = Color.Black
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray
             ),
             trailingIcon = {
                 Icon(Icons.Outlined.Person, contentDescription = null)
             },
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -155,9 +153,12 @@ fun LoginContent(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
-                cursorColor = Color.Black
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray
             ),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
@@ -189,14 +190,19 @@ fun LoginContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (authState is AuthState.Loading) BrandBlue else BrandBlue,
+                contentColor = Color.White,
+                disabledContainerColor = BrandBlue,
+                disabledContentColor = Color.White
+            ),
             shape = RoundedCornerShape(25.dp),
             enabled = authState !is AuthState.Loading
         ) {
             if (authState is AuthState.Loading) {
                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
             } else {
-                Text("LOGIN", fontWeight = FontWeight.Bold)
+                Text("LOGIN", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
 
@@ -212,8 +218,9 @@ fun LoginContent(
                 modifier = Modifier.clickable { onNavigateToRegister() }
             )
         }
+        }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Emergency Contacts
         EmergencyButton(onClick = onNavigateToEmergency)
@@ -254,35 +261,86 @@ fun RegisterContent(
         )
 
         // Fields
-        CustomTextField(
-            label = "First Name*",
-            placeholder = "John",
+        OutlinedTextField(
             value = firstName,
-            onValueChange = { firstName = it }
-        )
-        CustomTextField(
-            label = "Last Name*",
-            placeholder = "Doe",
-            value = lastName,
-            onValueChange = { lastName = it }
-        )
-        CustomTextField(
-            label = "Email*",
-            placeholder = "johndoe@gmail.com",
-            value = email,
-            onValueChange = { email = it }
+            onValueChange = { firstName = it },
+            label = { Text("First Name*") },
+            placeholder = { Text("John", color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.LightGray
+            ),
+            singleLine = true
         )
         
-        // Phone Number
-        Text(
-            text = "Phone Number*",
-            color = TextDark,
-            fontSize = 14.sp,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = lastName,
+            onValueChange = { lastName = it },
+            label = { Text("Last Name*") },
+            placeholder = { Text("Doe", color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.LightGray
+            ),
+            singleLine = true
         )
-        Row(modifier = Modifier.fillMaxWidth()) {
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email*") },
+            placeholder = { Text("johndoe@gmail.com", color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.LightGray
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Phone Number
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom
+        ) {
             OutlinedTextField(
-                value = "PH(+63)",
+                value = "🇵🇭 +63",
                 onValueChange = {},
                 readOnly = true,
                 modifier = Modifier.width(110.dp),
@@ -290,24 +348,37 @@ fun RegisterContent(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = Color.LightGray,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
-                    cursorColor = Color.Black
-                )
+                    cursorColor = BrandBlue,
+                    disabledContainerColor = Color.White,
+                    disabledBorderColor = Color.LightGray,
+                    disabledTextColor = Color.Black
+                ),
+                enabled = false,
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.width(8.dp))
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                placeholder = { Text("12-3456-7890") },
+                label = { Text("Phone Number*") },
+                placeholder = { Text("12-3456-7890", color = Color.Gray) },
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = BrandBlue,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
-                    cursorColor = Color.Black
+                    cursorColor = BrandBlue,
+                    focusedLabelColor = BrandBlue,
+                    unfocusedLabelColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray,
+                    focusedPlaceholderColor = Color.LightGray
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 singleLine = true
@@ -316,15 +387,68 @@ fun RegisterContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Password
-        CustomPasswordField(
-            label = "Password*",
+        var passwordVisible by remember { mutableStateOf(false) }
+        OutlinedTextField(
             value = password,
-            onValueChange = { password = it }
+            onValueChange = { password = it },
+            label = { Text("Password*") },
+            placeholder = { Text("Enter your password", color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.LightGray
+            ),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val icon = if (passwordVisible) Icons.Default.Lock else Icons.Outlined.Lock
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(icon, contentDescription = null, tint = Color.Gray)
+                }
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
-        CustomPasswordField(
-            label = "Confirm Password*",
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        var confirmPasswordVisible by remember { mutableStateOf(false) }
+        OutlinedTextField(
             value = confirmPassword,
-            onValueChange = { confirmPassword = it }
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password*") },
+            placeholder = { Text("Re-enter your password", color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = BrandBlue,
+                focusedLabelColor = BrandBlue,
+                unfocusedLabelColor = Color.Gray,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.LightGray
+            ),
+            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val icon = if (confirmPasswordVisible) Icons.Default.Lock else Icons.Outlined.Lock
+                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Icon(icon, contentDescription = null, tint = Color.Gray)
+                }
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -341,10 +465,17 @@ fun RegisterContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Terms
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Checkbox(
                 checked = isTermsAccepted,
-                onCheckedChange = { isTermsAccepted = it }
+                onCheckedChange = { isTermsAccepted = it },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = BrandBlue,
+                    uncheckedColor = Color.Gray
+                )
             )
             Text(
                 "I agree to Terms of Service and Privacy Policy.",
@@ -365,14 +496,19 @@ fun RegisterContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = BrandBlue,
+                contentColor = Color.White,
+                disabledContainerColor = BrandBlue.copy(alpha = 0.5f),
+                disabledContentColor = Color.White
+            ),
             shape = RoundedCornerShape(25.dp),
             enabled = authState !is AuthState.Loading && isTermsAccepted
         ) {
             if (authState is AuthState.Loading) {
                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
             } else {
-                Text("SIGN UP", fontWeight = FontWeight.Bold)
+                Text("SIGN UP", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
 
@@ -420,11 +556,15 @@ fun CustomTextField(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
-                cursorColor = Color.Black
+                cursorColor = BrandBlue,
+                unfocusedPlaceholderColor = Color.Gray,
+                focusedPlaceholderColor = Color.LightGray
             ),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = if (label.contains("Email", ignoreCase = true)) KeyboardType.Email else KeyboardType.Text)
         )
     }
 }
@@ -451,9 +591,10 @@ fun CustomPasswordField(
                 unfocusedContainerColor = Color.White,
                 focusedContainerColor = Color.White,
                 unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = BrandBlue,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
-                cursorColor = Color.Black
+                cursorColor = BrandBlue
             ),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
