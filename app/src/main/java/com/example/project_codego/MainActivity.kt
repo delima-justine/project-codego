@@ -262,7 +262,10 @@ fun CategorySection() {
 fun ShareExperienceButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = PrimaryBlue,
+            contentColor = Color.White
+        ),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -271,13 +274,15 @@ fun ShareExperienceButton(onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
+            tint = Color.White,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Share Your Experience",
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
     }
 }
@@ -292,6 +297,7 @@ fun PostCard(
     val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     val dateString = sdf.format(Date(post.timestamp))
     var expanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -332,23 +338,34 @@ fun PostCard(
                         }
                         DropdownMenu(
                             expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.background(Color.White)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Edit") },
+                                text = { 
+                                    Text(
+                                        "Edit",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold
+                                    ) 
+                                },
                                 onClick = {
                                     expanded = false
                                     onEditClick()
-                                },
-                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                                }
                             )
                             DropdownMenuItem(
-                                text = { Text("Delete") },
-                                onClick = {
-                                    viewModel.deletePost(post.id)
-                                    expanded = false
+                                text = { 
+                                    Text(
+                                        "Delete",
+                                        color = ActionRed,
+                                        fontWeight = FontWeight.Bold
+                                    ) 
                                 },
-                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) }
+                                onClick = {
+                                    expanded = false
+                                    showDeleteDialog = true
+                                }
                             )
                         }
                     }
@@ -412,13 +429,51 @@ fun PostCard(
             }
         }
     }
+    
+    // Delete Confirmation Dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { 
+                Text(
+                    "Delete Post", 
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                ) 
+            },
+            text = { 
+                Text(
+                    "Are you sure you want to delete this post? This action cannot be undone.",
+                    color = Color.Black
+                ) 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deletePost(post.id)
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = ActionRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
 @Composable
 fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
     NavigationBar(
         containerColor = Color.White,
-        tonalElevation = 8.dp
+        tonalElevation = 8.dp,
+        modifier = Modifier.height(80.dp)
     ) {
         val items = listOf(
             "Home" to Icons.Default.Home,
@@ -431,11 +486,25 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
             NavigationBarItem(
                 selected = currentTab == item.first,
                 onClick = { onTabSelected(item.first) },
-                icon = { Icon(item.second, contentDescription = item.first) },
-                label = { Text(item.first) },
+                icon = { 
+                    Icon(
+                        item.second, 
+                        contentDescription = item.first,
+                        modifier = Modifier.size(26.dp)
+                    ) 
+                },
+                label = { 
+                    Text(
+                        item.first,
+                        fontSize = 12.sp,
+                        fontWeight = if (currentTab == item.first) FontWeight.Bold else FontWeight.Normal
+                    ) 
+                },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = PrimaryBlue,
                     selectedTextColor = PrimaryBlue,
+                    unselectedIconColor = Color.Gray,
+                    unselectedTextColor = Color.Gray,
                     indicatorColor = Color.Transparent
                 )
             )
