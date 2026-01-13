@@ -248,7 +248,8 @@ fun EditProfileScreen(
                 Text(
                     text = "Save Changes",
                     fontSize = dimens.mediumTextSize,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
             }
             
