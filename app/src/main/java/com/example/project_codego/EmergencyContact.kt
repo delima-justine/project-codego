@@ -4,18 +4,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import kotlinx.coroutines.delay
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.animation.core.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +29,13 @@ fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
     // Colors matching SharingHubScreen
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
+    
+    var isLoading by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(Unit) {
+        delay(1500)
+        isLoading = false
+    }
 
     Scaffold(
         topBar = {
@@ -77,108 +90,120 @@ fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
         },
         containerColor = BackgroundGray
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(14.dp)
-        ) {
-
-            // ℹ️ Info Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+        if (isLoading) {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(14.dp)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text = "Emergency Contacts",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = "Quick access to emergency hotlines and services. Available offline.",
-                        fontSize = 13.sp
-                    )
-                }
+                SkeletonEmergencyScreen()
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 🔍 Search (UI only)
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("Search contacts...") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White
-                )
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 🔽 Category
-            OutlinedTextField(
-                value = "All",
-                onValueChange = {},
-                enabled = false,
-                label = { Text("Category") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    disabledContainerColor = Color.White,
-                    disabledBorderColor = Color.Gray,
-                    disabledTextColor = Color.Black,
-                    disabledLabelColor = Color.Black
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 🔽 Region
-            OutlinedTextField(
-                value = "All",
-                onValueChange = {},
-                enabled = false,
-                label = { Text("Region") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    disabledContainerColor = Color.White,
-                    disabledBorderColor = Color.Gray,
-                    disabledTextColor = Color.Black,
-                    disabledLabelColor = Color.Black
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 📞 Emergency Cards (STATIC UI)
-            EmergencyCard("National Emergency Hotline", "National", "Emergency", "911")
-            EmergencyCard("PNP Hotline", "National", "Police", "117")
-            EmergencyCard("Philippine Red Cross", "National", "Medical", "143")
-            EmergencyCard("MMDA Metrobase", "Metro Manila", "Emergency", "136")
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 🔢 Pagination UI
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(14.dp)
             ) {
-                Button(onClick = {}) { Text("Previous") }
-                Spacer(modifier = Modifier.width(6.dp))
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+
+                // ℹ️ Info Card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
-                    Text("1", color = Color.White)
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "Emergency Contacts",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = "Quick access to emergency hotlines and services. Available offline.",
+                            fontSize = 13.sp
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.width(6.dp))
-                Button(onClick = {}) { Text("2") }
-                Spacer(modifier = Modifier.width(6.dp))
-                Button(onClick = {}) { Text("Next") }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 🔍 Search (UI only)
+                OutlinedTextField(
+                    value = "",
+                    onValueChange = {},
+                    placeholder = { Text("Search contacts...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 🔽 Category
+                OutlinedTextField(
+                    value = "All",
+                    onValueChange = {},
+                    enabled = false,
+                    label = { Text("Category") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledContainerColor = Color.White,
+                        disabledBorderColor = Color.Gray,
+                        disabledTextColor = Color.Black,
+                        disabledLabelColor = Color.Black
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 🔽 Region
+                OutlinedTextField(
+                    value = "All",
+                    onValueChange = {},
+                    enabled = false,
+                    label = { Text("Region") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledContainerColor = Color.White,
+                        disabledBorderColor = Color.Gray,
+                        disabledTextColor = Color.Black,
+                        disabledLabelColor = Color.Black
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 📞 Emergency Cards (STATIC UI)
+                EmergencyCard("National Emergency Hotline", "National", "Emergency", "911")
+                EmergencyCard("PNP Hotline", "National", "Police", "117")
+                EmergencyCard("Philippine Red Cross", "National", "Medical", "143")
+                EmergencyCard("MMDA Metrobase", "Metro Manila", "Emergency", "136")
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 🔢 Pagination UI
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = {}) { Text("Previous") }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+                    ) {
+                        Text("1", color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Button(onClick = {}) { Text("2") }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Button(onClick = {}) { Text("Next") }
+                }
             }
         }
     }
@@ -228,6 +253,178 @@ fun EmergencyCard(
             ) {
                 Text("📞", fontSize = 18.sp, color = Color.White)
             }
+        }
+    }
+}
+
+@Composable
+fun emergencyShimmerBrush(): Brush {
+    val shimmerColors = listOf(
+        Color.LightGray.copy(alpha = 0.6f),
+        Color.LightGray.copy(alpha = 0.2f),
+        Color.LightGray.copy(alpha = 0.6f),
+    )
+
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1200,
+                easing = LinearEasing
+            ),
+            repeatMode = RepeatMode.Restart
+        ), label = "shimmer"
+    )
+
+    return Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset.Zero,
+        end = Offset(x = translateAnim.value, y = translateAnim.value)
+    )
+}
+
+@Composable
+fun SkeletonEmergencyScreen() {
+    val brush = emergencyShimmerBrush()
+    
+    // Info Card Skeleton
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    // Search field skeleton
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.White)
+            .padding(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(20.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(brush)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    // Category dropdown skeleton
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.White)
+            .padding(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(80.dp)
+                .height(20.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(brush)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    // Region dropdown skeleton
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(Color.White)
+            .padding(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(80.dp)
+                .height(20.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(brush)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    // Emergency cards skeleton
+    repeat(4) {
+        SkeletonEmergencyCard(brush)
+    }
+}
+
+@Composable
+fun SkeletonEmergencyCard(brush: Brush) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .width(180.dp)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(brush)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(12.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(brush)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(brush)
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
         }
     }
 }
