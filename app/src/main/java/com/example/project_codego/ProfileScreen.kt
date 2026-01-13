@@ -153,9 +153,14 @@ fun ProfileScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Default.Edit, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(16.dp),
+                                tint = Color.White
+                            )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Edit Profile")
+                            Text("Edit Profile", color = Color.White)
                         }
                     }
                 }
