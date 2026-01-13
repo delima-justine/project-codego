@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.dto.UserPost
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import com.example.project_codego.ui.theme.rememberDimensions
 import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
@@ -152,11 +153,11 @@ fun SharingHubScreen(
     onBackClick: () -> Unit
 ) {
     var tabLoadingKey by remember { mutableStateOf(0) }
-    
+
     LaunchedEffect(currentTab) {
         tabLoadingKey++
     }
-    
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -209,7 +210,7 @@ fun FeedContent(
     val currentUserId = currentUser?.uid
     var menuExpanded by remember { mutableStateOf(false) }
     var showSkeleton by remember(key) { mutableStateOf(true) }
-    
+
     LaunchedEffect(key) {
         if (key > 1) {
             showSkeleton = true
@@ -219,12 +220,13 @@ fun FeedContent(
             showSkeleton = isLoading
         }
     }
-    
+
     LaunchedEffect(isLoading) {
         if (!isLoading) {
             showSkeleton = false
         }
     }
+    val dimens = rememberDimensions()
 
     Scaffold(
         topBar = {
@@ -232,7 +234,7 @@ fun FeedContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp)
+                    .padding(top = dimens.extraLargePadding, bottom = dimens.mediumPadding)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -242,19 +244,19 @@ fun FeedContent(
                         text = "ResQ PH",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = dimens.largeTextSize
                     )
                     Text(
                         text = "Local Rescue App",
                         color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 14.sp
+                        fontSize = dimens.normalTextSize
                     )
                 }
                 
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(end = 8.dp)
+                        .padding(end = dimens.mediumPadding)
                 ) {
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
@@ -273,7 +275,8 @@ fun FeedContent(
                                 Text(
                                     "Account",
                                     color = Color.Black,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = dimens.normalTextSize
                                 )
                             },
                             onClick = {
@@ -301,8 +304,8 @@ fun FeedContent(
         ) {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                contentPadding = PaddingValues(dimens.largePadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.largePadding)
             ) {
                 item { CategorySection() }
                 item { ShareExperienceButton(onClick = onNavigateToCreatePost) }
@@ -313,8 +316,8 @@ fun FeedContent(
                     }
                 } else if (posts.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("No posts yet. Be the first to share!", color = Color.Gray)
+                        Box(modifier = Modifier.fillMaxWidth().padding(dimens.extraLargePadding), contentAlignment = Alignment.Center) {
+                            Text("No posts yet. Be the first to share!", color = Color.Gray, fontSize = dimens.normalTextSize)
                         }
                     }
                 } else {
@@ -336,10 +339,11 @@ fun FeedContent(
 
 @Composable
 fun CategorySection() {
+    val dimens = rememberDimensions()
     Column {
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(bottom = 8.dp)
+            horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
+            modifier = Modifier.padding(bottom = dimens.mediumPadding)
         ) {
             items(listOf("All Posts", "Survival Stories", "Disaster Alerts", "Help Needed")) { category ->
                 val isSelected = category == "All Posts"
@@ -349,11 +353,11 @@ fun CategorySection() {
                         containerColor = if (isSelected) PrimaryBlue else Color.White,
                         contentColor = if (isSelected) Color.White else Color.Gray
                     ),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(dimens.buttonRadius),
+                    contentPadding = PaddingValues(horizontal = dimens.largePadding, vertical = dimens.mediumPadding),
                     modifier = Modifier.height(40.dp)
                 ) {
-                    Text(text = category)
+                    Text(text = category, fontSize = dimens.normalTextSize)
                 }
             }
         }
@@ -362,27 +366,28 @@ fun CategorySection() {
 
 @Composable
 fun ShareExperienceButton(onClick: () -> Unit) {
+    val dimens = rememberDimensions()
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
             containerColor = PrimaryBlue,
             contentColor = Color.White
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(dimens.cardRadius),
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(dimens.buttonHeight)
     ) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = null,
             tint = Color.White,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(dimens.mediumIconSize)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(dimens.mediumPadding))
         Text(
             text = "Share Your Experience",
-            fontSize = 16.sp,
+            fontSize = dimens.mediumTextSize,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
@@ -396,6 +401,7 @@ fun PostCard(
     currentUserId: String?,
     onEditClick: () -> Unit
 ) {
+    val dimens = rememberDimensions()
     val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
     val dateString = sdf.format(Date(post.timestamp))
     var expanded by remember { mutableStateOf(false) }
@@ -404,10 +410,10 @@ fun PostCard(
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(dimens.cardRadius)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(dimens.largePadding)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -415,7 +421,7 @@ fun PostCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(dimens.postAvatarSize)
                         .clip(CircleShape)
                         .background(Color.Gray)
                 ) {
@@ -426,10 +432,10 @@ fun PostCard(
                          modifier = Modifier.align(Alignment.Center)
                      )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(dimens.mediumPadding))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = post.authorName, fontWeight = FontWeight.Bold)
-                    Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(text = post.authorName, fontWeight = FontWeight.Bold, fontSize = dimens.mediumTextSize)
+                    Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = dimens.smallTextSize)
                 }
                 
                 // Kebab Menu (Only if owner)
@@ -448,7 +454,8 @@ fun PostCard(
                                     Text(
                                         "Edit",
                                         color = Color.Black,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = dimens.normalTextSize
                                     ) 
                                 },
                                 onClick = {
@@ -461,7 +468,8 @@ fun PostCard(
                                     Text(
                                         "Delete",
                                         color = ActionRed,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = dimens.normalTextSize
                                     ) 
                                 },
                                 onClick = {
@@ -474,60 +482,61 @@ fun PostCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(dimens.mediumPadding))
 
             Surface(
                 color = TagBlue,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.padding(bottom = 8.dp)
+                shape = RoundedCornerShape(dimens.largePadding),
+                modifier = Modifier.padding(bottom = dimens.mediumPadding)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = dimens.mediumPadding, vertical = dimens.smallPadding)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
                         tint = TagTextBlue,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(dimens.smallIconSize)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = post.category, color = TagTextBlue, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.width(dimens.smallPadding))
+                    Text(text = post.category, color = TagTextBlue, fontSize = dimens.smallTextSize)
                 }
             }
 
             Text(
                 text = post.content,
                 style = MaterialTheme.typography.bodyMedium,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
+                fontSize = dimens.normalTextSize
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimens.largePadding))
 
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dimens.mediumPadding))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.FavoriteBorder,
                     contentDescription = "Like",
                     tint = Color.Gray,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(dimens.largeIconSize * 0.4f)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "0", color = Color.Gray)
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                Text(text = "0", color = Color.Gray, fontSize = dimens.normalTextSize)
 
-                Spacer(modifier = Modifier.width(24.dp))
+                Spacer(modifier = Modifier.width(dimens.mediumIconSize))
 
                 Icon(
                     imageVector = Icons.Default.Email,
                     contentDescription = "Comment",
                     tint = Color.Gray,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(dimens.largeIconSize * 0.4f)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "0", color = Color.Gray)
+                Spacer(modifier = Modifier.width(dimens.smallPadding))
+                Text(text = "0", color = Color.Gray, fontSize = dimens.normalTextSize)
             }
         }
     }
@@ -540,13 +549,15 @@ fun PostCard(
                 Text(
                     "Delete Post", 
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontSize = dimens.largeTextSize
                 ) 
             },
             text = { 
                 Text(
                     "Are you sure you want to delete this post? This action cannot be undone.",
-                    color = Color.Black
+                    color = Color.Black,
+                    fontSize = dimens.normalTextSize
                 ) 
             },
             confirmButton = {
@@ -556,16 +567,16 @@ fun PostCard(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Delete", color = ActionRed, fontWeight = FontWeight.Bold)
+                    Text("Delete", color = ActionRed, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                    Text("Cancel", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
                 }
             },
             containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(dimens.largePadding)
         )
     }
 }
@@ -601,7 +612,7 @@ fun shimmerBrush(): Brush {
 @Composable
 fun SkeletonPostCard() {
     val brush = shimmerBrush()
-    
+
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -679,7 +690,7 @@ fun SkeletonPostCard() {
             Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
-            
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -707,10 +718,11 @@ fun SkeletonPostCard() {
 
 @Composable
 fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
+    val dimens = rememberDimensions()
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
+        modifier = Modifier.height(dimens.bottomNavHeight)
     ) {
         val items = listOf(
             "Home" to Icons.Default.Home,
@@ -727,13 +739,13 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
                     Icon(
                         item.second, 
                         contentDescription = item.first,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(dimens.mediumIconSize)
                     ) 
                 },
                 label = { 
                     Text(
                         item.first,
-                        fontSize = 12.sp,
+                        fontSize = dimens.smallTextSize,
                         fontWeight = if (currentTab == item.first) FontWeight.Bold else FontWeight.Normal
                     ) 
                 },
