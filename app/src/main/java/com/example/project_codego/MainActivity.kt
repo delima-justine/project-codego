@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
@@ -35,6 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.dto.UserPost
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
@@ -43,6 +46,7 @@ import com.example.project_codego.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,6 +151,12 @@ fun SharingHubScreen(
     onNavigateToEditProfile: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    var tabLoadingKey by remember { mutableStateOf(0) }
+    
+    LaunchedEffect(currentTab) {
+        tabLoadingKey++
+    }
+    
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -161,7 +171,8 @@ fun SharingHubScreen(
                 "Home" -> FeedContent(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
                     onNavigateToEditPost = onNavigateToEditPost,
-                    onNavigateToProfile = { onTabSelected("Profile") }
+                    onNavigateToProfile = { onTabSelected("Profile") },
+                    key = tabLoadingKey
                 )
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
                 "News" -> NewsScreen(onBackClick = onBackClick)
@@ -174,7 +185,8 @@ fun SharingHubScreen(
                 else -> FeedContent(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
                     onNavigateToEditPost = onNavigateToEditPost,
-                    onNavigateToProfile = { onTabSelected("Profile") }
+                    onNavigateToProfile = { onTabSelected("Profile") },
+                    key = tabLoadingKey
                 ) 
             }
         }
@@ -188,12 +200,31 @@ fun FeedContent(
     onNavigateToEditPost: (String, String, String) -> Unit,
     onNavigateToProfile: () -> Unit,
     postViewModel: PostViewModel = viewModel(),
-    authViewModel: AuthViewModel = viewModel()
+    authViewModel: AuthViewModel = viewModel(),
+    key: Int = 0
 ) {
     val posts by postViewModel.posts.collectAsState()
+    val isLoading by postViewModel.isLoading.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
     val currentUserId = currentUser?.uid
     var menuExpanded by remember { mutableStateOf(false) }
+    var showSkeleton by remember(key) { mutableStateOf(true) }
+    
+    LaunchedEffect(key) {
+        if (key > 1) {
+            showSkeleton = true
+            delay(800)
+            showSkeleton = false
+        } else {
+            showSkeleton = isLoading
+        }
+    }
+    
+    LaunchedEffect(isLoading) {
+        if (!isLoading) {
+            showSkeleton = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -276,7 +307,11 @@ fun FeedContent(
                 item { CategorySection() }
                 item { ShareExperienceButton(onClick = onNavigateToCreatePost) }
                 
-                if (posts.isEmpty()) {
+                if (showSkeleton) {
+                    items(3) {
+                        SkeletonPostCard()
+                    }
+                } else if (posts.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                             Text("No posts yet. Be the first to share!", color = Color.Gray)
@@ -532,6 +567,141 @@ fun PostCard(
             containerColor = Color.White,
             shape = RoundedCornerShape(16.dp)
         )
+    }
+}
+
+@Composable
+fun shimmerBrush(): Brush {
+    val shimmerColors = listOf(
+        Color.LightGray.copy(alpha = 0.6f),
+        Color.LightGray.copy(alpha = 0.2f),
+        Color.LightGray.copy(alpha = 0.6f),
+    )
+
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1200,
+                easing = LinearEasing
+            ),
+            repeatMode = RepeatMode.Restart
+        ), label = "shimmer"
+    )
+
+    return Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset.Zero,
+        end = Offset(x = translateAnim.value, y = translateAnim.value)
+    )
+}
+
+@Composable
+fun SkeletonPostCard() {
+    val brush = shimmerBrush()
+    
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(brush)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .width(120.dp)
+                            .height(14.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(brush)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(12.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(brush)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .width(100.dp)
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(brush)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(brush)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+            
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(brush)
+                )
+
+                Spacer(modifier = Modifier.width(24.dp))
+
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(brush)
+                )
+            }
+        }
     }
 }
 
