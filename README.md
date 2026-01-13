@@ -48,6 +48,8 @@ While this app acts as an information and sharing platform, its ultimate goal is
 
 ### 📶 **Offline Access**
 * **Crucial Feature:** Users can view the emergency contact directory **without** an internet or cellular data connection.
+* **Smart Navigation:** Home, News, and Tracker tabs are automatically disabled when offline or not authenticated, ensuring users can always access emergency contacts.
+* **Authentication-Based Access:** Certain features require user authentication to ensure community safety and accountability.
 
 ### ✏️ **Profile Management**
 * Users can customize their profiles (Name, Profile Picture, Bio).
