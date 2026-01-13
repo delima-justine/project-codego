@@ -16,10 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.viewmodel.AuthViewModel
+import com.example.project_codego.ui.theme.rememberDimensions
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.material3.LocalTextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +31,7 @@ fun EditProfileScreen(
     onBackClick: () -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
+    val dimens = rememberDimensions()
     val currentUser by viewModel.currentUser.collectAsState()
     val displayName = currentUser?.displayName ?: ""
     val email = currentUser?.email ?: ""
@@ -51,13 +56,13 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp),
+                    .padding(top = dimens.extraLargePadding, bottom = dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     IconButton(
                         onClick = onBackClick,
-                        modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
+                        modifier = Modifier.align(Alignment.CenterStart).padding(start = dimens.mediumPadding)
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
@@ -70,7 +75,7 @@ fun EditProfileScreen(
                             text = "Edit Profile",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontSize = dimens.largeTextSize
                         )
                     }
                 }
@@ -83,13 +88,13 @@ fun EditProfileScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(dimens.largePadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Profile Picture Section
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(dimens.profileAvatarSize)
                     .clip(CircleShape)
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
@@ -99,133 +104,136 @@ fun EditProfileScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(dimens.largePadding),
                     tint = Color.White
                 )
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dimens.mediumPadding))
             
             TextButton(onClick = { /* TODO: Add photo picker */ }) {
-                Text("Change Photo", color = PrimaryBlue)
+                Text("Change Photo", color = PrimaryBlue, fontSize = dimens.normalTextSize)
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimens.largePadding))
 
             // Edit Form Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(dimens.largePadding),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(dimens.largePadding)
                 ) {
                     // First Name
                     Text(
                         text = "First Name",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = dimens.normalTextSize,
                         color = TextDark,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = dimens.smallPadding)
                     )
                     OutlinedTextField(
                         value = firstName,
                         onValueChange = { firstName = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Enter first name", color = Color.Gray) },
-                        shape = RoundedCornerShape(8.dp),
+                        placeholder = { Text("Enter first name", color = Color.Gray, fontSize = dimens.normalTextSize) },
+                        shape = RoundedCornerShape(dimens.buttonRadius),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryBlue,
                             unfocusedBorderColor = Color.LightGray,
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black
-                        )
+                        ),
+                        textStyle = LocalTextStyle.current.copy(fontSize = dimens.normalTextSize)
                     )
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimens.largePadding))
                     
                     // Last Name
                     Text(
                         text = "Last Name",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = dimens.normalTextSize,
                         color = TextDark,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = dimens.smallPadding)
                     )
                     OutlinedTextField(
                         value = lastName,
                         onValueChange = { lastName = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Enter last name", color = Color.Gray) },
-                        shape = RoundedCornerShape(8.dp),
+                        placeholder = { Text("Enter last name", color = Color.Gray, fontSize = dimens.normalTextSize) },
+                        shape = RoundedCornerShape(dimens.buttonRadius),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryBlue,
                             unfocusedBorderColor = Color.LightGray,
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black
-                        )
+                        ),
+                        textStyle = LocalTextStyle.current.copy(fontSize = dimens.normalTextSize)
                     )
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimens.largePadding))
                     
                     // Email
                     Text(
                         text = "Email",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = dimens.normalTextSize,
                         color = TextDark,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = dimens.smallPadding)
                     )
                     OutlinedTextField(
                         value = newEmail,
                         onValueChange = { newEmail = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Enter email address", color = Color.Gray) },
-                        shape = RoundedCornerShape(8.dp),
+                        placeholder = { Text("Enter email address", color = Color.Gray, fontSize = dimens.normalTextSize) },
+                        shape = RoundedCornerShape(dimens.buttonRadius),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryBlue,
                             unfocusedBorderColor = Color.LightGray,
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black
-                        )
+                        ),
+                        textStyle = LocalTextStyle.current.copy(fontSize = dimens.normalTextSize)
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimens.largePadding))
             
             // Account ID Card (Read-only)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(dimens.largePadding),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(dimens.largePadding)
                 ) {
                     Text(
                         text = "Account ID (Cannot be changed)",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = dimens.normalTextSize,
                         color = Color.Gray,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = dimens.mediumPadding)
                     )
                     Text(
                         text = uid,
-                        fontSize = 12.sp,
+                        fontSize = dimens.smallTextSize,
                         color = Color.Gray
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(dimens.mediumIconSize))
             
             // Save Button
             Button(
@@ -244,18 +252,18 @@ fun EditProfileScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(dimens.buttonHeight),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(dimens.buttonRadius)
             ) {
                 Text(
                     text = "Save Changes",
-                    fontSize = 16.sp,
+                    fontSize = dimens.mediumTextSize,
                     fontWeight = FontWeight.Bold
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimens.largePadding))
         }
     }
     
@@ -266,18 +274,18 @@ fun EditProfileScreen(
                 showSuccessDialog = false
                 onBackClick()
             },
-            title = { Text("Success", fontWeight = FontWeight.Bold) },
-            text = { Text("Your profile has been updated successfully.") },
+            title = { Text("Success", fontWeight = FontWeight.Bold, fontSize = dimens.largeTextSize) },
+            text = { Text("Your profile has been updated successfully.", fontSize = dimens.normalTextSize) },
             confirmButton = {
                 TextButton(onClick = { 
                     showSuccessDialog = false
                     onBackClick()
                 }) {
-                    Text("OK", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                    Text("OK", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
                 }
             },
             containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(dimens.largePadding)
         )
     }
     
@@ -285,15 +293,15 @@ fun EditProfileScreen(
     if (showErrorDialog) {
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
-            title = { Text("Error", fontWeight = FontWeight.Bold, color = Color.Red) },
-            text = { Text(errorMessage) },
+            title = { Text("Error", fontWeight = FontWeight.Bold, color = Color.Red, fontSize = dimens.largeTextSize) },
+            text = { Text(errorMessage, fontSize = dimens.normalTextSize) },
             confirmButton = {
                 TextButton(onClick = { showErrorDialog = false }) {
-                    Text("OK", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                    Text("OK", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
                 }
             },
             containerColor = Color.White,
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(dimens.largePadding)
         )
     }
 }

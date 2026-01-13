@@ -34,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
+import com.example.project_codego.ui.theme.rememberDimensions
 
 @Composable
 fun ProfileScreen(
@@ -42,6 +43,7 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
+    val dimens = rememberDimensions()
     val currentUser by viewModel.currentUser.collectAsState()
     val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "Rescue User"
     val email = currentUser?.email ?: "No Email"
@@ -59,13 +61,13 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp),
+                    .padding(top = dimens.extraLargePadding, bottom = dimens.mediumPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     IconButton(
                         onClick = onBackClick,
-                        modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp)
+                        modifier = Modifier.align(Alignment.CenterStart).padding(start = dimens.mediumPadding)
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
@@ -78,7 +80,7 @@ fun ProfileScreen(
                             text = "Profile",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontSize = dimens.largeTextSize
                         )
                     }
                 }
@@ -91,14 +93,14 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(dimens.largePadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Main Profile Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(dimens.largePadding),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -169,19 +171,19 @@ fun ProfileScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimens.largePadding))
 
             // Sign Out Button Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(dimens.largePadding),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(dimens.largePadding),
                     contentAlignment = Alignment.Center
                 ) {
                     TextButton(onClick = {
@@ -189,53 +191,53 @@ fun ProfileScreen(
                         onLogout()
                     }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = null, tint = ActionRed)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Sign Out", color = ActionRed, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(dimens.mediumPadding))
+                        Text("Sign Out", color = ActionRed, fontSize = dimens.mediumTextSize)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimens.largePadding))
 
             // Account Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(dimens.largePadding),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(dimens.largePadding)
                 ) {
                     Text(
                         text = "Account Info",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        fontSize = dimens.mediumTextSize,
                         color = TextDark
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimens.largePadding))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Email", color = Color.Gray, fontSize = 14.sp)
-                        Text(email, color = TextDark, fontSize = 14.sp)
+                        Text("Email", color = Color.Gray, fontSize = dimens.normalTextSize)
+                        Text(email, color = TextDark, fontSize = dimens.normalTextSize)
                     }
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(dimens.mediumPadding))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Account ID", color = Color.Gray, fontSize = 14.sp)
+                        Text("Account ID", color = Color.Gray, fontSize = dimens.normalTextSize)
                         Text(
                             uid,
                             color = TextDark,
-                            fontSize = 12.sp,
+                            fontSize = dimens.smallTextSize,
                             maxLines = 1
                         )
                     }
