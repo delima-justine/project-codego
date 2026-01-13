@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -151,11 +152,20 @@ fun SharingHubScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (currentTab) {
-                "Home" -> FeedContent(onNavigateToCreatePost, onNavigateToEditPost)
+                "Home" -> FeedContent(
+                    onNavigateToCreatePost = onNavigateToCreatePost, 
+                    onNavigateToEditPost = onNavigateToEditPost,
+                    onNavigateToProfile = { onTabSelected("Profile") }
+                )
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
+                "News" -> NewsScreen(onBackClick = onBackClick)
                 "Profile" -> ProfileScreen(onLogout = onLogout, onBackClick = onBackClick)
                 "Tracker" -> TrackerScreen(onBackClick = onBackClick)
-                else -> FeedContent(onNavigateToCreatePost, onNavigateToEditPost) 
+                else -> FeedContent(
+                    onNavigateToCreatePost = onNavigateToCreatePost, 
+                    onNavigateToEditPost = onNavigateToEditPost,
+                    onNavigateToProfile = { onTabSelected("Profile") }
+                ) 
             }
         }
     }
@@ -166,33 +176,79 @@ fun SharingHubScreen(
 fun FeedContent(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
+    onNavigateToProfile: () -> Unit,
     postViewModel: PostViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel()
 ) {
     val posts by postViewModel.posts.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
     val currentUserId = currentUser?.uid
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(PrimaryBlue)
-                    .padding(top = 32.dp, bottom = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(top = 32.dp, bottom = 10.dp)
             ) {
-                Text(
-                    text = "ResQ PH",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
-                Text(
-                    text = "Local Rescue App",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 14.sp
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "ResQ PH",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                    Text(
+                        text = "Local Rescue App",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 14.sp
+                    )
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 8.dp)
+                ) {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Menu",
+                            tint = Color.White
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        modifier = Modifier.background(Color.White)
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "Account",
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onNavigateToProfile()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = PrimaryBlue
+                                )
+                            }
+                        )
+                    }
+                }
             }
         },
         containerColor = BackgroundGray
@@ -479,7 +535,7 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
         val items = listOf(
             "Home" to Icons.Default.Home,
             "Emergency" to Icons.Default.Phone,
-            "Profile" to Icons.Default.Person,
+            "News" to Icons.Default.DateRange,
             "Tracker" to Icons.Default.LocationOn
         )
         
