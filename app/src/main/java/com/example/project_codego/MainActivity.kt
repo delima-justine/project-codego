@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,10 +13,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.animation.core.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
@@ -24,20 +25,19 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.dto.UserPost
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
@@ -80,7 +80,10 @@ data class NavEntry(
 
 @Composable
 fun AppNavigation() {
-    val backStack = remember { mutableStateListOf(NavEntry(Screen.Onboarding)) }
+    val context = LocalContext.current
+    val onboardingPreferences = remember { OnboardingPreferences(context) }
+    val initialScreen = if (onboardingPreferences.isOnboardingCompleted()) Screen.Auth else Screen.Onboarding
+    val backStack = remember { mutableStateListOf(NavEntry(initialScreen)) }
     val currentEntry = backStack.last()
 
     fun navigateTo(
@@ -105,7 +108,10 @@ fun AppNavigation() {
     }
 
     when (currentEntry.screen) {
-        Screen.Onboarding -> OnboardingScreen(onGetStarted = { navigateTo(Screen.Auth) })
+        Screen.Onboarding -> OnboardingScreen(onGetStarted = {
+            onboardingPreferences.setOnboardingCompleted()
+            navigateTo(Screen.Auth)
+        })
         Screen.Auth -> AuthScreen(
             onLoginSuccess = { navigateTo(Screen.Home) },
             onNavigateToEmergency = { navigateTo(Screen.Home, "Emergency") }
