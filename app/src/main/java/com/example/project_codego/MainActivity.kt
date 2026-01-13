@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.animation.core.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,6 +43,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.dto.UserPost
+import com.example.project_codego.dto.Comment
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 import com.example.project_codego.ui.theme.rememberDimensions
 import com.example.project_codego.viewmodel.AuthViewModel
@@ -212,6 +216,8 @@ fun FeedContent(
 ) {
     val posts by postViewModel.posts.collectAsState()
     val isLoading by postViewModel.isLoading.collectAsState()
+    val currentPage by postViewModel.currentPage.collectAsState()
+    val totalPages by postViewModel.totalPages.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
     val currentUserId = currentUser?.uid
     var menuExpanded by remember { mutableStateOf(false) }
@@ -337,6 +343,19 @@ fun FeedContent(
                             }
                         )
                     }
+                    
+                    // Pagination Controls
+                    if (totalPages > 1) {
+                        item {
+                            PaginationControls(
+                                currentPage = currentPage,
+                                totalPages = totalPages,
+                                onPreviousClick = { postViewModel.goToPreviousPage() },
+                                onNextClick = { postViewModel.goToNextPage() },
+                                onPageClick = { page -> postViewModel.goToPage(page) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -371,6 +390,102 @@ fun CategorySection() {
 }
 
 @Composable
+fun PaginationControls(
+    currentPage: Int,
+    totalPages: Int,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onPageClick: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Previous Button
+            Button(
+                onClick = onPreviousClick,
+                enabled = currentPage > 1,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryBlue,
+                    disabledContainerColor = Color.LightGray
+                ),
+                modifier = Modifier.height(36.dp)
+            ) {
+                Text("Previous", color = Color.White, fontSize = 14.sp)
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // Page Numbers
+            val pagesToShow = when {
+                totalPages <= 5 -> (1..totalPages).toList()
+                currentPage <= 3 -> listOf(1, 2, 3, 4, 5)
+                currentPage >= totalPages - 2 -> (totalPages - 4..totalPages).toList()
+                else -> listOf(currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2)
+            }
+            
+            pagesToShow.forEach { page ->
+                Button(
+                    onClick = { onPageClick(page) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (page == currentPage) PrimaryBlue else Color.White,
+                        contentColor = if (page == currentPage) Color.White else PrimaryBlue
+                    ),
+                    modifier = Modifier
+                        .size(36.dp)
+                        .padding(horizontal = 2.dp),
+                    contentPadding = PaddingValues(0.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    border = if (page != currentPage) BorderStroke(1.dp, PrimaryBlue) else null
+                ) {
+                    Text(
+                        text = page.toString(),
+                        fontSize = 14.sp,
+                        fontWeight = if (page == currentPage) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // Next Button
+            Button(
+                onClick = onNextClick,
+                enabled = currentPage < totalPages,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryBlue,
+                    disabledContainerColor = Color.LightGray
+                ),
+                modifier = Modifier.height(36.dp)
+            ) {
+                Text("Next", color = Color.White, fontSize = 14.sp)
+            }
+        }
+        
+        // Page Info
+        Text(
+            text = "Page $currentPage of $totalPages",
+            fontSize = 12.sp,
+            color = Color.Gray,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun ShareExperienceButton(onClick: () -> Unit) {
     val dimens = rememberDimensions()
     Button(
@@ -400,6 +515,21 @@ fun ShareExperienceButton(onClick: () -> Unit) {
     }
 }
 
+fun getRelativeTime(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    
+    return when {
+        diff < 60000 -> "just now" // Less than 1 minute
+        diff < 3600000 -> "${diff / 60000}m" // Less than 1 hour
+        diff < 86400000 -> "${diff / 3600000}h" // Less than 1 day
+        diff < 604800000 -> "${diff / 86400000}d" // Less than 1 week
+        diff < 2592000000 -> "${diff / 604800000}w" // Less than 30 days
+        diff < 31536000000 -> "${diff / 2592000000}mo" // Less than 1 year
+        else -> "${diff / 31536000000}y" // 1 year or more
+    }
+}
+
 @Composable
 fun PostCard(
     post: UserPost, 
@@ -407,11 +537,15 @@ fun PostCard(
     currentUserId: String?,
     onEditClick: () -> Unit
 ) {
-    val dimens = rememberDimensions()
-    val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-    val dateString = sdf.format(Date(post.timestamp))
+    val relativeTime = getRelativeTime(post.timestamp)
     var expanded by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showComments by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+    
+    val isLiked = currentUserId?.let { post.likes.contains(it) } ?: false
+    val likesCount = post.likes.size
+    val commentsCount = post.comments.size
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -432,8 +566,8 @@ fun PostCard(
                 )
                 Spacer(modifier = Modifier.width(dimens.mediumPadding))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = post.authorName, fontWeight = FontWeight.Bold, fontSize = dimens.mediumTextSize)
-                    Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = dimens.smallTextSize)
+                    Text(text = post.authorName, fontWeight = FontWeight.Bold)
+                    Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 }
                 
                 // Kebab Menu (Only if owner)
@@ -520,21 +654,21 @@ fun PostCard(
                     imageVector = Icons.Outlined.FavoriteBorder,
                     contentDescription = "Like",
                     tint = Color.Gray,
-                    modifier = Modifier.size(dimens.largeIconSize * 0.4f)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                Text(text = "0", color = Color.Gray, fontSize = dimens.normalTextSize)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "0", color = Color.Gray)
 
-                Spacer(modifier = Modifier.width(dimens.mediumIconSize))
+                Spacer(modifier = Modifier.width(24.dp))
 
                 Icon(
                     imageVector = Icons.Default.Email,
                     contentDescription = "Comment",
                     tint = Color.Gray,
-                    modifier = Modifier.size(dimens.largeIconSize * 0.4f)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                Text(text = "0", color = Color.Gray, fontSize = dimens.normalTextSize)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "0", color = Color.Gray)
             }
         }
     }
@@ -605,6 +739,227 @@ fun shimmerBrush(): Brush {
         start = Offset.Zero,
         end = Offset(x = translateAnim.value, y = translateAnim.value)
     )
+}
+
+@Composable
+fun CommentItem(
+    comment: Comment,
+    currentUserId: String?,
+    onDeleteComment: () -> Unit,
+    onEditComment: (String) -> Unit
+) {
+    val relativeTime = getRelativeTime(comment.timestamp)
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+    
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.align(Alignment.Center).size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        Text(
+                            text = comment.userName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                        Text(
+                            text = relativeTime,
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                    }
+                    
+                    if (currentUserId == comment.userId) {
+                        Box {
+                            IconButton(
+                                onClick = { menuExpanded = true },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Options",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                                modifier = Modifier.background(Color.White)
+                            ) {
+                                DropdownMenuItem(
+                                    text = { 
+                                        Text(
+                                            "Edit",
+                                            color = Color.Black,
+                                            fontWeight = FontWeight.Bold
+                                        ) 
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showEditDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = null,
+                                            tint = PrimaryBlue
+                                        )
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { 
+                                        Text(
+                                            "Delete",
+                                            color = ActionRed,
+                                            fontWeight = FontWeight.Bold
+                                        ) 
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showDeleteDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = ActionRed
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = comment.text,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                    color = Color.Black
+                )
+            }
+        }
+    }
+    
+    // Edit Dialog
+    if (showEditDialog) {
+        var editedText by remember { mutableStateOf(comment.text) }
+        
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { 
+                Text(
+                    "Edit Comment", 
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                ) 
+            },
+            text = { 
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    placeholder = { Text("Edit your comment...", color = Color.Gray) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryBlue,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        cursorColor = PrimaryBlue
+                    ),
+                    minLines = 3,
+                    maxLines = 5
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (editedText.isNotBlank() && editedText != comment.text) {
+                            onEditComment(editedText)
+                            showEditDialog = false
+                        } else if (editedText == comment.text) {
+                            showEditDialog = false
+                        }
+                    },
+                    enabled = editedText.isNotBlank()
+                ) {
+                    Text("Save", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Cancel", color = Color.Gray, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+    
+    // Delete Dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { 
+                Text(
+                    "Delete Comment", 
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                ) 
+            },
+            text = { 
+                Text(
+                    "Are you sure you want to delete this comment?",
+                    color = Color.Black
+                ) 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteComment()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = ActionRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = PrimaryBlue, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
 @Composable
