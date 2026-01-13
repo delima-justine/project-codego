@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
@@ -240,7 +239,6 @@ fun RegisterContent(
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isTermsAccepted by remember { mutableStateOf(false) }
@@ -332,58 +330,6 @@ fun RegisterContent(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Phone Number
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom
-        ) {
-            OutlinedTextField(
-                value = "🇵🇭 +63",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier.width(110.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color.LightGray,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    cursorColor = BrandBlue,
-                    disabledContainerColor = Color.White,
-                    disabledBorderColor = Color.LightGray,
-                    disabledTextColor = Color.Black
-                ),
-                enabled = false,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = { phoneNumber = it },
-                label = { Text("Phone Number*") },
-                placeholder = { Text("12-3456-7890", color = Color.Gray) },
-                modifier = Modifier.weight(1f),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White,
-                    unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = BrandBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    cursorColor = BrandBlue,
-                    focusedLabelColor = BrandBlue,
-                    unfocusedLabelColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray,
-                    focusedPlaceholderColor = Color.LightGray
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true
-            )
-        }
         Spacer(modifier = Modifier.height(16.dp))
 
         // Password
