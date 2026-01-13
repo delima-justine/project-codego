@@ -150,9 +150,13 @@ fun SharingHubScreen(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
     onNavigateToEditProfile: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    authViewModel: AuthViewModel = viewModel()
 ) {
     var tabLoadingKey by remember { mutableStateOf(0) }
+    val isConnected by rememberConnectivityState()
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val isAuthenticated = currentUser != null
 
     LaunchedEffect(currentTab) {
         tabLoadingKey++
@@ -162,7 +166,9 @@ fun SharingHubScreen(
         bottomBar = {
             BottomNavigationBar(
                 currentTab = currentTab,
-                onTabSelected = onTabSelected
+                onTabSelected = onTabSelected,
+                isConnected = isConnected,
+                isAuthenticated = isAuthenticated
             )
         },
         containerColor = BackgroundGray
@@ -717,7 +723,12 @@ fun SkeletonPostCard() {
 }
 
 @Composable
-fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
+fun BottomNavigationBar(
+    currentTab: String, 
+    onTabSelected: (String) -> Unit,
+    isConnected: Boolean,
+    isAuthenticated: Boolean
+) {
     val dimens = rememberDimensions()
     NavigationBar(
         containerColor = Color.White,
@@ -731,10 +742,20 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
             "Tracker" to Icons.Default.LocationOn
         )
         
-        items.forEach { item -> 
+        items.forEach { item ->
+            val isDisabled = when (item.first) {
+                "Home", "News", "Tracker" -> !isConnected || !isAuthenticated
+                else -> false
+            }
+            
             NavigationBarItem(
                 selected = currentTab == item.first,
-                onClick = { onTabSelected(item.first) },
+                onClick = { 
+                    if (!isDisabled) {
+                        onTabSelected(item.first)
+                    }
+                },
+                enabled = !isDisabled,
                 icon = { 
                     Icon(
                         item.second, 
@@ -754,6 +775,8 @@ fun BottomNavigationBar(currentTab: String, onTabSelected: (String) -> Unit) {
                     selectedTextColor = PrimaryBlue,
                     unselectedIconColor = Color.Gray,
                     unselectedTextColor = Color.Gray,
+                    disabledIconColor = Color.LightGray,
+                    disabledTextColor = Color.LightGray,
                     indicatorColor = Color.Transparent
                 )
             )
