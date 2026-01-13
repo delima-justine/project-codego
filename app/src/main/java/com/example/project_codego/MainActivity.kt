@@ -61,7 +61,8 @@ enum class Screen {
     Auth,
     Home,
     CreatePost,
-    EditPost
+    EditPost,
+    EditProfile
 }
 
 data class NavEntry(
@@ -112,6 +113,7 @@ fun AppNavigation() {
             onNavigateToEditPost = { id, content, category ->
                 navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
             },
+            onNavigateToEditProfile = { navigateTo(Screen.EditProfile) },
             onBackClick = { goBack() }
         )
         Screen.CreatePost -> CreatePostScreen(
@@ -121,6 +123,9 @@ fun AppNavigation() {
             postId = currentEntry.postId ?: "",
             initialContent = currentEntry.postContent ?: "",
             initialCategory = currentEntry.postCategory ?: "",
+            onBackClick = { goBack() }
+        )
+        Screen.EditProfile -> EditProfileScreen(
             onBackClick = { goBack() }
         )
     }
@@ -139,6 +144,7 @@ fun SharingHubScreen(
     onLogout: () -> Unit,
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onBackClick: () -> Unit
 ) {
     Scaffold(
@@ -159,7 +165,11 @@ fun SharingHubScreen(
                 )
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
                 "News" -> NewsScreen(onBackClick = onBackClick)
-                "Profile" -> ProfileScreen(onLogout = onLogout, onBackClick = onBackClick)
+                "Profile" -> ProfileScreen(
+                    onLogout = onLogout, 
+                    onBackClick = onBackClick,
+                    onNavigateToEditProfile = onNavigateToEditProfile
+                )
                 "Tracker" -> TrackerScreen(onBackClick = onBackClick)
                 else -> FeedContent(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
