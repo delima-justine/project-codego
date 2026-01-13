@@ -206,8 +206,7 @@ fun EditPostScreen(
             Button(
                 onClick = { 
                     if (postContent.isNotBlank()) {
-                        viewModel.updatePost(postId, postContent)
-                        // In a real app, you might also want to update the category if your backend supports it
+                        viewModel.updatePost(postId, postContent, selectedCategory)
                         onBackClick()
                     }
                 },

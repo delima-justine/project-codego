@@ -117,10 +117,13 @@ class PostViewModel : ViewModel() {
     }
 
     // 3. UPDATE
-    fun updatePost(postId: String, newContent: String) {
+    fun updatePost(postId: String, newContent: String, newCategory: String) {
         viewModelScope.launch {
             postsCollection.document(postId)
-                .update("content", newContent)
+                .update(mapOf(
+                    "content" to newContent,
+                    "category" to newCategory
+                ))
         }
     }
 

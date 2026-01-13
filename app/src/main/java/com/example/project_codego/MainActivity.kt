@@ -222,6 +222,7 @@ fun FeedContent(
     val currentUserId = currentUser?.uid
     var menuExpanded by remember { mutableStateOf(false) }
     var showSkeleton by remember(key) { mutableStateOf(true) }
+    var selectedCategory by remember { mutableStateOf("All Posts") }
 
     LaunchedEffect(key) {
         if (key > 1) {
@@ -239,6 +240,14 @@ fun FeedContent(
         }
     }
     val dimens = rememberDimensions()
+    
+    val filteredPosts = remember(posts, selectedCategory) {
+        if (selectedCategory == "All Posts") {
+            posts
+        } else {
+            posts.filter { it.category == selectedCategory }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -319,21 +328,30 @@ fun FeedContent(
                 contentPadding = PaddingValues(dimens.largePadding),
                 verticalArrangement = Arrangement.spacedBy(dimens.largePadding)
             ) {
-                item { CategorySection() }
+                item { 
+                    CategorySection(
+                        selectedCategory = selectedCategory,
+                        onCategorySelected = { selectedCategory = it }
+                    ) 
+                }
                 item { ShareExperienceButton(onClick = onNavigateToCreatePost) }
                 
                 if (showSkeleton) {
                     items(3) {
                         SkeletonPostCard()
                     }
-                } else if (posts.isEmpty()) {
+                } else if (filteredPosts.isEmpty()) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().padding(dimens.extraLargePadding), contentAlignment = Alignment.Center) {
-                            Text("No posts yet. Be the first to share!", color = Color.Gray, fontSize = dimens.normalTextSize)
+                            Text(
+                                text = if (selectedCategory == "All Posts") "No posts yet. Be the first to share!" else "No posts in this category yet.",
+                                color = Color.Gray, 
+                                fontSize = dimens.normalTextSize
+                            )
                         }
                     }
                 } else {
-                    items(posts) { post -> 
+                    items(filteredPosts) { post -> 
                         PostCard(
                             post = post, 
                             viewModel = postViewModel, 
@@ -350,17 +368,20 @@ fun FeedContent(
 }
 
 @Composable
-fun CategorySection() {
+fun CategorySection(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
     val dimens = rememberDimensions()
     Column {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(dimens.mediumPadding),
             modifier = Modifier.padding(bottom = dimens.mediumPadding)
         ) {
-            items(listOf("All Posts", "Survival Stories", "Disaster Alerts", "Help Needed")) { category ->
-                val isSelected = category == "All Posts"
+            items(listOf("All Posts", "Survival Story", "Disaster Tip", "Advice", "General")) { category ->
+                val isSelected = category == selectedCategory
                 Button(
-                    onClick = { },
+                    onClick = { onCategorySelected(category) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isSelected) PrimaryBlue else Color.White,
                         contentColor = if (isSelected) Color.White else Color.Gray
