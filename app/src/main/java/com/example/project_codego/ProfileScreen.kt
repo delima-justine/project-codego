@@ -116,25 +116,15 @@ fun ProfileScreen(
                     )
 
                     // Avatar (overlapping the header)
-                    Box(
+                    UserAvatar(
+                        name = displayName,
                         modifier = Modifier
                             .offset(y = (-50).dp)
                             .size(100.dp)
-                            .clip(CircleShape)
-                            .background(Color.White) // White border effect
-                            .padding(4.dp)
-                            .clip(CircleShape)
-                            .background(Color.LightGray) // Placeholder for image
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            tint = Color.White
-                        )
-                    }
+                            .background(Color.White, CircleShape)
+                            .padding(4.dp),
+                        fontSize = 40.sp
+                    )
 
                     // Profile Content
                     Column(

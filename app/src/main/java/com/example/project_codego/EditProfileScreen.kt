@@ -92,22 +92,11 @@ fun EditProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Profile Picture Section
-            Box(
-                modifier = Modifier
-                    .size(dimens.profileAvatarSize)
-                    .clip(CircleShape)
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(dimens.largePadding),
-                    tint = Color.White
-                )
-            }
+            UserAvatar(
+                name = displayName,
+                modifier = Modifier.size(dimens.profileAvatarSize),
+                fontSize = (dimens.profileAvatarSize.value / 2.5).sp
+            )
             
             Spacer(modifier = Modifier.height(dimens.mediumPadding))
             

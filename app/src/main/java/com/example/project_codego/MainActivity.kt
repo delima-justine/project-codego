@@ -425,19 +425,11 @@ fun PostCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(dimens.postAvatarSize)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                ) {
-                     Icon(
-                         imageVector = Icons.Default.Person,
-                         contentDescription = null,
-                         tint = Color.White,
-                         modifier = Modifier.align(Alignment.Center)
-                     )
-                }
+                UserAvatar(
+                    name = post.authorName,
+                    modifier = Modifier.size(dimens.postAvatarSize),
+                    fontSize = (dimens.postAvatarSize.value / 2.5).sp
+                )
                 Spacer(modifier = Modifier.width(dimens.mediumPadding))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = post.authorName, fontWeight = FontWeight.Bold, fontSize = dimens.mediumTextSize)
