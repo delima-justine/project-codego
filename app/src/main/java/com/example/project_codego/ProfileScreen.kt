@@ -39,6 +39,7 @@ import com.example.project_codego.ui.theme.ProjectcodegoTheme
 fun ProfileScreen(
     onLogout: () -> Unit,
     onBackClick: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
     val currentUser by viewModel.currentUser.collectAsState()
@@ -153,20 +154,11 @@ fun ProfileScreen(
                             modifier = Modifier.padding(top = 4.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = "Disaster preparedness advocate from Metro Manila. Survived Typhoon Odette and sharing my experiences to help others.",
-                            fontSize = 14.sp,
-                            color = TextDark,
-                            lineHeight = 20.sp
-                        )
-
                         Spacer(modifier = Modifier.height(20.dp))
 
                         Button(
-                            onClick = { },
-                            colors = ButtonDefaults.buttonColors(containerColor = ActionRed),
+                            onClick = onNavigateToEditProfile,
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -257,6 +249,6 @@ fun ProfileScreen(
 @Composable
 fun ProfileScreenPreview() {
     ProjectcodegoTheme {
-        ProfileScreen(onLogout = {}, onBackClick = {})
+        ProfileScreen(onLogout = {}, onBackClick = {}, onNavigateToEditProfile = {})
     }
 }

@@ -69,6 +69,47 @@ class AuthViewModel : ViewModel() {
         _currentUser.value = null
         _authState.value = AuthState.Idle
     }
+    
+    fun updateProfile(
+        displayName: String,
+        email: String? = null,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            val user = auth.currentUser
+            if (user == null) {
+                onError("No user logged in")
+                return@launch
+            }
+            
+            val profileUpdates = UserProfileChangeRequest.Builder()
+                .setDisplayName(displayName)
+                .build()
+            
+            user.updateProfile(profileUpdates)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        if (email != null && email != user.email) {
+                            user.updateEmail(email)
+                                .addOnCompleteListener { emailTask ->
+                                    if (emailTask.isSuccessful) {
+                                        _currentUser.value = auth.currentUser
+                                        onSuccess()
+                                    } else {
+                                        onError(emailTask.exception?.message ?: "Failed to update email")
+                                    }
+                                }
+                        } else {
+                            _currentUser.value = auth.currentUser
+                            onSuccess()
+                        }
+                    } else {
+                        onError(task.exception?.message ?: "Failed to update profile")
+                    }
+                }
+        }
+    }
 }
 
 sealed class AuthState {
