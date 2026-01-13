@@ -19,6 +19,9 @@ class PostViewModel : ViewModel() {
     private val _posts = MutableStateFlow<List<UserPost>>(emptyList())
     val posts = _posts.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
+
     init {
         // READ: Listen for real-time updates
         fetchPostsRealtime() 
@@ -47,11 +50,15 @@ class PostViewModel : ViewModel() {
         postsCollection
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, e ->
-                if (e != null) return@addSnapshotListener
+                if (e != null) {
+                    _isLoading.value = false
+                    return@addSnapshotListener
+                }
                 
                 if (snapshot != null) {
                     val postList = snapshot.toObjects(UserPost::class.java)
                     _posts.value = postList
+                    _isLoading.value = false
                 }
             }
     }
