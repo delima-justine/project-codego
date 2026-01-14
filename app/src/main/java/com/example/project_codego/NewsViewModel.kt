@@ -10,11 +10,29 @@ class NewsViewModel : ViewModel() {
     private val _newsState = mutableStateOf<NewsState>(NewsState.Loading)
     val newsState: State<NewsState> = _newsState
 
+    private val _isRefreshing = mutableStateOf(false)
+    val isRefreshing: State<Boolean> = _isRefreshing
+
     private val apiService = NewsApiService.create()
     private val apiKey = "bcad6e37557b454d41130d680f6ec8b9" // Replace with your actual key if different
 
     init {
         fetchNews()
+    }
+
+    fun refreshNews() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                val query = "accident OR safety OR emergency OR disaster OR rescue OR \"safety tips\""
+                val response = apiService.searchNews(query = query, apiKey = apiKey)
+                _newsState.value = NewsState.Success(response.articles)
+            } catch (e: Exception) {
+                _newsState.value = NewsState.Error("Failed to fetch news: ${e.message}")
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
 
     private fun fetchNews() {
