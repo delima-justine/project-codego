@@ -10,7 +10,8 @@ Welcome to **ResQ PH**, your pocket companion for emergency preparedness and com
     - [Emergency Hotlines](#32-emergency-hotlines)
     - [News & Updates](#33-news--updates)
     - [Live Tracker](#34-live-tracker)
-    - [Profile Management](#35-profile-management)
+    - [Profile Management & Security](#35-profile-management--security)
+    - [About ResQ PH](#36-about-resq-ph)
 4. [Offline Mode](#4-offline-mode)
 5. [Troubleshooting](#5-troubleshooting)
 
@@ -43,7 +44,7 @@ The app uses a **Bottom Navigation Bar** to help you move between main sections:
 3.  **📰 News:** Real-time disaster and weather news updates.
 4.  **📍 Tracker:** Live location sharing map.
 
-*Note: If you are offline or not logged in, the Home, News, and Tracker tabs may be disabled.*
+*Note: Access additional options like **Account** and **About** via the three-dot menu (⋮) in the top-right corner of the Home screen.*
 
 ---
 
@@ -83,9 +84,23 @@ Visualize the community on a map.
     *   **OFF:** You are invisible to others, and your location is not uploaded.
 *   **Viewing Others:** You can see other active users as colored dots on the map. Tap a dot to see their username.
 
-### 3.5 Profile Management
-*   **Edit Profile:** Go to the **Profile** tab (or "Account" in the menu) to update your display name or bio.
+### 3.5 Profile Management & Security
+*   **Edit Profile:** Go to the **Profile** tab (or "Account" in the menu) to update your display name or email.
 *   **Logout:** Scroll to the bottom of the Profile screen to log out of your account.
+*   **Delete Account (Soft Delete):**
+    *   Located at the bottom of the Profile screen in **soft red**.
+    *   When initiated, your account is scheduled for permanent deletion after **30 days**.
+    *   Your data is hidden from the community immediately.
+*   **Account Reactivation:**
+    *   If you change your mind within the 30-day grace period, simply log in to your account.
+    *   A prompt will appear asking if you want to **Reactivate Account**.
+    *   Choosing "Reactivate" will restore your account fully and cancel the deletion schedule.
+
+### 3.6 About ResQ PH
+Accessible via the three-dot menu (⋮) on the Home screen.
+*   **Description:** Learn about the platform's community-driven nature.
+*   **Purpose:** Understand our mission to bridge the gap between emergency services and Filipinos.
+*   **Manual Access:** A digital version of this manual is also available within the "About" screen for quick reference.
 
 ---
 
@@ -109,7 +124,8 @@ ResQ PH is designed to be useful even when connectivity fails.
 | **"No Internet Connection"** | Check your Wi-Fi or Mobile Data settings. The Home, News, and Tracker tabs require an active connection. |
 | **Location not updating** | Ensure GPS is enabled on your device and you have granted "Fine Location" permission to the app. |
 | **Map is blank** | The map requires internet to load the visual tiles. Ensure you are online. |
-| **Cannot Login** | Verify your email and password. If the issue persists, check your internet connection. |
+| **Cannot Login** | Verify your email and password. If your account was scheduled for deletion, you can reactivate it during login. |
+| **Reactivation Prompt Not Appearing** | Ensure you are logging in with the correct credentials. If the 30-day period has passed, the account is permanently removed. |
 
 ---
 
