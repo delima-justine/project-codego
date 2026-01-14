@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
 }
 
 enum class Screen {
+    Splash,
     Onboarding,
     Auth,
     Home,
@@ -92,6 +93,7 @@ data class NavEntry(
 fun AppNavigation() {
     val context = LocalContext.current
     val onboardingPreferences = remember { OnboardingPreferences(context) }
+    var showSplash by remember { mutableStateOf(true) }
     val initialScreen = if (onboardingPreferences.isOnboardingCompleted()) Screen.Auth else Screen.Onboarding
     val backStack = remember { mutableStateListOf(NavEntry(initialScreen)) }
     val currentEntry = backStack.last()
@@ -117,38 +119,43 @@ fun AppNavigation() {
         goBack()
     }
 
-    when (currentEntry.screen) {
-        Screen.Onboarding -> OnboardingScreen(onGetStarted = {
-            onboardingPreferences.setOnboardingCompleted()
-            navigateTo(Screen.Auth)
-        })
-        Screen.Auth -> AuthScreen(
-            onLoginSuccess = { navigateTo(Screen.Home) },
-            onNavigateToEmergency = { navigateTo(Screen.Home, "Emergency") }
-        )
-        Screen.Home -> SharingHubScreen(
-            currentTab = currentEntry.tab,
-            onTabSelected = { newTab -> navigateTo(Screen.Home, newTab) },
-            onLogout = { navigateTo(Screen.Auth) },
-            onNavigateToCreatePost = { navigateTo(Screen.CreatePost) },
-            onNavigateToEditPost = { id, content, category ->
-                navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
-            },
-            onNavigateToEditProfile = { navigateTo(Screen.EditProfile) },
-            onBackClick = { goBack() }
-        )
-        Screen.CreatePost -> CreatePostScreen(
-            onBackClick = { goBack() }
-        )
-        Screen.EditPost -> EditPostScreen(
-            postId = currentEntry.postId ?: "",
-            initialContent = currentEntry.postContent ?: "",
-            initialCategory = currentEntry.postCategory ?: "",
-            onBackClick = { goBack() }
-        )
-        Screen.EditProfile -> EditProfileScreen(
-            onBackClick = { goBack() }
-        )
+    if (showSplash) {
+        SplashScreen(onSplashComplete = { showSplash = false })
+    } else {
+        when (currentEntry.screen) {
+            Screen.Splash -> SplashScreen(onSplashComplete = { showSplash = false })
+            Screen.Onboarding -> OnboardingScreen(onGetStarted = {
+                onboardingPreferences.setOnboardingCompleted()
+                navigateTo(Screen.Auth)
+            })
+            Screen.Auth -> AuthScreen(
+                onLoginSuccess = { navigateTo(Screen.Home) },
+                onNavigateToEmergency = { navigateTo(Screen.Home, "Emergency") }
+            )
+            Screen.Home -> SharingHubScreen(
+                currentTab = currentEntry.tab,
+                onTabSelected = { newTab -> navigateTo(Screen.Home, newTab) },
+                onLogout = { navigateTo(Screen.Auth) },
+                onNavigateToCreatePost = { navigateTo(Screen.CreatePost) },
+                onNavigateToEditPost = { id, content, category ->
+                    navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
+                },
+                onNavigateToEditProfile = { navigateTo(Screen.EditProfile) },
+                onBackClick = { goBack() }
+            )
+            Screen.CreatePost -> CreatePostScreen(
+                onBackClick = { goBack() }
+            )
+            Screen.EditPost -> EditPostScreen(
+                postId = currentEntry.postId ?: "",
+                initialContent = currentEntry.postContent ?: "",
+                initialCategory = currentEntry.postCategory ?: "",
+                onBackClick = { goBack() }
+            )
+            Screen.EditProfile -> EditProfileScreen(
+                onBackClick = { goBack() }
+            )
+        }
     }
 }
 
