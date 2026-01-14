@@ -54,6 +54,7 @@ import com.example.project_codego.ui.theme.rememberDimensions
 import com.example.project_codego.ui.theme.Dimensions
 import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -94,7 +95,14 @@ data class NavEntry(
 fun AppNavigation() {
     val context = LocalContext.current
     val onboardingPreferences = remember { OnboardingPreferences(context) }
-    val initialScreen = if (onboardingPreferences.isOnboardingCompleted()) Screen.Auth else Screen.Onboarding
+    val auth = FirebaseAuth.getInstance()
+    
+    val initialScreen = when {
+        !onboardingPreferences.isOnboardingCompleted() -> Screen.Onboarding
+        auth.currentUser != null -> Screen.Home
+        else -> Screen.Auth
+    }
+    
     val backStack = remember { mutableStateListOf(NavEntry(initialScreen)) }
     val currentEntry = backStack.last()
 
