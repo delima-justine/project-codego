@@ -77,7 +77,8 @@ enum class Screen {
     Home,
     CreatePost,
     EditPost,
-    EditProfile
+    EditProfile,
+    About
 }
 
 data class NavEntry(
@@ -135,6 +136,7 @@ fun AppNavigation() {
                 navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
             },
             onNavigateToEditProfile = { navigateTo(Screen.EditProfile) },
+            onNavigateToAbout = { navigateTo(Screen.About) },
             onBackClick = { goBack() }
         )
         Screen.CreatePost -> CreatePostScreen(
@@ -147,6 +149,9 @@ fun AppNavigation() {
             onBackClick = { goBack() }
         )
         Screen.EditProfile -> EditProfileScreen(
+            onBackClick = { goBack() }
+        )
+        Screen.About -> AboutScreen(
             onBackClick = { goBack() }
         )
     }
@@ -166,6 +171,7 @@ fun SharingHubScreen(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
     onNavigateToEditProfile: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     onBackClick: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
@@ -195,6 +201,7 @@ fun SharingHubScreen(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
                     onNavigateToEditPost = onNavigateToEditPost,
                     onNavigateToProfile = { onTabSelected("Profile") },
+                    onNavigateToAbout = onNavigateToAbout,
                     key = tabLoadingKey
                 )
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
@@ -209,6 +216,7 @@ fun SharingHubScreen(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
                     onNavigateToEditPost = onNavigateToEditPost,
                     onNavigateToProfile = { onTabSelected("Profile") },
+                    onNavigateToAbout = onNavigateToAbout,
                     key = tabLoadingKey
                 ) 
             }
@@ -222,6 +230,7 @@ fun FeedContent(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     postViewModel: PostViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel(),
     key: Int = 0
@@ -312,6 +321,27 @@ fun FeedContent(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = PrimaryBlue
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "About",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = dimens.normalTextSize
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onNavigateToAbout()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
                                         contentDescription = null,
                                         tint = PrimaryBlue
                                     )
