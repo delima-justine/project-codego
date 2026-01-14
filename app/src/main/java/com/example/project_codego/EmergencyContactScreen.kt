@@ -107,19 +107,6 @@ fun EmergencyContactsScreen(
                 }
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Handle FAB if needed */ },
-                containerColor = PrimaryBlue,
-                contentColor = Color.White
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Emergency Contact",
-                    tint = Color.White
-                )
-            }
-        },
         bottomBar = {
             // Fixed bottom pagination bar
             Surface(
