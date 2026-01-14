@@ -25,6 +25,8 @@ import com.example.project_codego.ui.theme.ProjectcodegoTheme
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.animation.core.*
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,6 +35,7 @@ fun NewsScreen(
     viewModel: NewsViewModel = viewModel()
 ) {
     val newsState by viewModel.newsState
+    val isRefreshing by viewModel.isRefreshing
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
 
@@ -63,40 +66,44 @@ fun NewsScreen(
         },
         containerColor = BackgroundGray
     ) { innerPadding ->
-        Box(
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing),
+            onRefresh = { viewModel.refreshNews() },
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            when (val state = newsState) {
-                is NewsState.Loading -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(3) {
-                            SkeletonNewsCard()
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (val state = newsState) {
+                    is NewsState.Loading -> {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(3) {
+                                SkeletonNewsCard()
+                            }
                         }
                     }
-                }
-                is NewsState.Success -> {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(state.articles) { article ->
-                            NewsItemCard(article)
+                    is NewsState.Success -> {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.articles) { article ->
+                                NewsItemCard(article)
+                            }
                         }
                     }
-                }
-                is NewsState.Error -> {
-                    Text(
-                        text = state.message,
-                        color = Color.Red,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
+                    is NewsState.Error -> {
+                        Text(
+                            text = state.message,
+                            color = Color.Red,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(16.dp)
+                        )
+                    }
                 }
             }
         }

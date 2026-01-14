@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.coil.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
     // Firebase
     implementation(platform(libs.firebase.bom))
