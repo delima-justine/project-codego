@@ -132,7 +132,7 @@ fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
                 // 🔍 Search (UI only)
                 OutlinedTextField(
                     value = "",
-                    onValueChange = {},
+                    onValueChange = { },
                     placeholder = { Text("Search contacts...") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -141,47 +141,13 @@ fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
                     )
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 🔽 Category
-                OutlinedTextField(
-                    value = "All",
-                    onValueChange = {},
-                    enabled = false,
-                    label = { Text("Category") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledContainerColor = Color.White,
-                        disabledBorderColor = Color.Gray,
-                        disabledTextColor = Color.Black,
-                        disabledLabelColor = Color.Black
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 🔽 Region
-                OutlinedTextField(
-                    value = "All",
-                    onValueChange = {},
-                    enabled = false,
-                    label = { Text("Region") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledContainerColor = Color.White,
-                        disabledBorderColor = Color.Gray,
-                        disabledTextColor = Color.Black,
-                        disabledLabelColor = Color.Black
-                    )
-                )
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 📞 Emergency Cards (STATIC UI)
-                EmergencyCard("National Emergency Hotline", "National", "Emergency", "911")
-                EmergencyCard("PNP Hotline", "National", "Police", "117")
-                EmergencyCard("Philippine Red Cross", "National", "Medical", "143")
-                EmergencyCard("MMDA Metrobase", "Metro Manila", "Emergency", "136")
+                EmergencyCard("National Emergency Hotline", "911")
+                EmergencyCard("PNP Hotline", "117")
+                EmergencyCard("Philippine Red Cross", "143")
+                EmergencyCard("MMDA Metrobase", "136")
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -194,7 +160,7 @@ fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
                     Button(onClick = {}) { Text("Previous") }
                     Spacer(modifier = Modifier.width(6.dp))
                     Button(
-                        onClick = {},
+                        onClick = { },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
                     ) {
                         Text("1", color = Color.White)
@@ -212,8 +178,6 @@ fun EmergencyContactsScreen(onBackClick: (() -> Unit)? = null) {
 @Composable
 fun EmergencyCard(
     title: String,
-    region: String,
-    category: String,
     number: String
 ) {
     Card(
@@ -234,11 +198,6 @@ fun EmergencyCard(
                     fontSize = 15.sp
                 )
                 Text(
-                    text = "$region • $category",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-                Text(
                     text = number,
                     fontSize = 14.sp,
                     color = Color(0xFFE53935)
@@ -246,7 +205,7 @@ fun EmergencyCard(
             }
 
             Button(
-                onClick = {},
+                onClick = { },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
                 modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
@@ -327,46 +286,6 @@ fun SkeletonEmergencyScreen() {
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.5f)
-                .height(20.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(brush)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    // Category dropdown skeleton
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color.White)
-            .padding(12.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .width(80.dp)
-                .height(20.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(brush)
-        )
-    }
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // Region dropdown skeleton
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color.White)
-            .padding(12.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .width(80.dp)
                 .height(20.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .background(brush)
