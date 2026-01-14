@@ -119,6 +119,68 @@ fun EmergencyContactsScreen(
                     tint = Color.White
                 )
             }
+        },
+        bottomBar = {
+            // Fixed bottom pagination bar
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // 🔢 Pagination UI (3 per page)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { viewModel.previousPage() },
+                            enabled = currentPage > 0
+                        ) { 
+                            Text("Previous") 
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        
+                        // Page numbers
+                        repeat(totalPages) { pageIndex ->
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Button(
+                                onClick = { viewModel.goToPage(pageIndex) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (pageIndex == currentPage) Color(0xFFE53935) else Color.Gray
+                                )
+                            ) {
+                                Text("${pageIndex + 1}", color = Color.White)
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Button(
+                            onClick = { viewModel.nextPage() },
+                            enabled = currentPage < totalPages - 1
+                        ) { 
+                            Text("Next") 
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Page info
+                    Text(
+                        text = "Showing ${currentPageContacts.size} of ${if (totalPages > 0) (currentPage + 1) * 3 else 0} contacts • Page ${currentPage + 1} of $totalPages",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     ) { innerPadding ->
         if (isLoading) {
@@ -131,6 +193,7 @@ fun EmergencyContactsScreen(
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
                     .padding(14.dp)
+                    .padding(bottom = 120.dp) // Add padding to account for fixed bottom bar
             ) {
                 // 🔍 Search
                 OutlinedTextField(
@@ -164,56 +227,6 @@ fun EmergencyContactsScreen(
                         icon = DataSource.getIconForContact(contact.icon)
                     )
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // 🔢 Pagination UI (3 per page)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = { viewModel.previousPage() },
-                        enabled = currentPage > 0
-                    ) { 
-                        Text("Previous") 
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                    
-                    // Page numbers
-                    repeat(totalPages) { pageIndex ->
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Button(
-                            onClick = { viewModel.goToPage(pageIndex) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (pageIndex == currentPage) Color(0xFFE53935) else Color.Gray
-                            )
-                        ) {
-                            Text("${pageIndex + 1}", color = Color.White)
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                    
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Button(
-                        onClick = { viewModel.nextPage() },
-                        enabled = currentPage < totalPages - 1
-                    ) { 
-                        Text("Next") 
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Page info
-                Text(
-                    text = "Showing ${currentPageContacts.size} of ${if (totalPages > 0) (currentPage + 1) * 3 else 0} contacts • Page ${currentPage + 1} of $totalPages",
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    color = Color.Gray,
-                    fontSize = 12.sp
-                )
             }
         }
     }
