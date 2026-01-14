@@ -54,6 +54,7 @@ import com.example.project_codego.ui.theme.rememberDimensions
 import com.example.project_codego.ui.theme.Dimensions
 import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,6 +63,7 @@ import kotlinx.coroutines.delay
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        NotificationHelper.createNotificationChannel(this)
         enableEdgeToEdge()
         setContent {
             ProjectcodegoTheme {
@@ -78,7 +80,8 @@ enum class Screen {
     Home,
     CreatePost,
     EditPost,
-    EditProfile
+    EditProfile,
+    About
 }
 
 data class NavEntry(
@@ -173,6 +176,7 @@ fun SharingHubScreen(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
     onNavigateToEditProfile: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     onBackClick: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
@@ -202,6 +206,7 @@ fun SharingHubScreen(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
                     onNavigateToEditPost = onNavigateToEditPost,
                     onNavigateToProfile = { onTabSelected("Profile") },
+                    onNavigateToAbout = onNavigateToAbout,
                     key = tabLoadingKey
                 )
                 "Emergency" -> EmergencyContactsScreen(onBackClick = onBackClick)
@@ -216,6 +221,7 @@ fun SharingHubScreen(
                     onNavigateToCreatePost = onNavigateToCreatePost, 
                     onNavigateToEditPost = onNavigateToEditPost,
                     onNavigateToProfile = { onTabSelected("Profile") },
+                    onNavigateToAbout = onNavigateToAbout,
                     key = tabLoadingKey
                 ) 
             }
@@ -229,6 +235,7 @@ fun FeedContent(
     onNavigateToCreatePost: () -> Unit,
     onNavigateToEditPost: (String, String, String) -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     postViewModel: PostViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel(),
     key: Int = 0
@@ -319,6 +326,27 @@ fun FeedContent(
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = PrimaryBlue
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "About",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = dimens.normalTextSize
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onNavigateToAbout()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
                                         contentDescription = null,
                                         tint = PrimaryBlue
                                     )
