@@ -42,7 +42,7 @@ fun EmergencyContactsScreen(
     val BackgroundGray = Color(0xFFF0F2F5)
     
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val filteredContacts by viewModel.filteredContacts.collectAsStateWithLifecycle()
+    val currentPageContacts by viewModel.currentPageContacts.collectAsStateWithLifecycle()
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val totalPages by viewModel.totalPages.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -50,7 +50,7 @@ fun EmergencyContactsScreen(
     // Debug logging
     LaunchedEffect(Unit) {
         Log.d("EmergencyContactsScreen", "isLoading: $isLoading")
-        Log.d("EmergencyContactsScreen", "filteredContacts size: ${filteredContacts.size}")
+        Log.d("EmergencyContactsScreen", "currentPageContacts size: ${currentPageContacts.size}")
         Log.d("EmergencyContactsScreen", "currentPage: $currentPage")
         Log.d("EmergencyContactsScreen", "totalPages: $totalPages")
     }
@@ -156,8 +156,8 @@ fun EmergencyContactsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 📞 Emergency Cards (from database)
-                filteredContacts.forEach { contact ->
+                // 📞 Emergency Cards (3 per page)
+                currentPageContacts.forEach { contact ->
                     EmergencyCard(
                         title = contact.name,
                         number = contact.phoneNumber,
@@ -167,7 +167,7 @@ fun EmergencyContactsScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // 🔢 Pagination UI (functional)
+                // 🔢 Pagination UI (3 per page)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -182,12 +182,18 @@ fun EmergencyContactsScreen(
                     Spacer(modifier = Modifier.width(6.dp))
                     
                     // Page numbers
-                    Text(
-                        text = "Page ${currentPage + 1} of $totalPages",
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
+                    repeat(totalPages) { pageIndex ->
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Button(
+                            onClick = { viewModel.goToPage(pageIndex) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (pageIndex == currentPage) Color(0xFFE53935) else Color.Gray
+                            )
+                        ) {
+                            Text("${pageIndex + 1}", color = Color.White)
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     
                     Spacer(modifier = Modifier.width(6.dp))
                     Button(
@@ -197,6 +203,17 @@ fun EmergencyContactsScreen(
                         Text("Next") 
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Page info
+                Text(
+                    text = "Showing ${currentPageContacts.size} of ${if (totalPages > 0) (currentPage + 1) * 3 else 0} contacts • Page ${currentPage + 1} of $totalPages",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
             }
         }
     }
