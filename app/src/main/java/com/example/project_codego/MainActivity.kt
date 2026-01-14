@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
@@ -25,6 +27,10 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,14 +40,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.project_codego.dto.UserPost
+import com.example.project_codego.dto.Comment
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 import com.example.project_codego.ui.theme.rememberDimensions
+import com.example.project_codego.ui.theme.Dimensions
 import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
@@ -218,6 +227,8 @@ fun FeedContent(
 ) {
     val posts by postViewModel.posts.collectAsState()
     val isLoading by postViewModel.isLoading.collectAsState()
+    val currentPage by postViewModel.currentPage.collectAsState()
+    val totalPages by postViewModel.totalPages.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
     val currentUserId = currentUser?.uid
     var menuExpanded by remember { mutableStateOf(false) }
@@ -251,70 +262,68 @@ fun FeedContent(
 
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(PrimaryBlue)
-                    .padding(top = dimens.extraLargePadding, bottom = dimens.mediumPadding)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "ResQ PH",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = dimens.largeTextSize
-                    )
-                    Text(
-                        text = "Local Rescue App",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = dimens.normalTextSize
-                    )
-                }
-                
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(end = dimens.mediumPadding)
-                ) {
-                    IconButton(onClick = { menuExpanded = true }) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Menu",
-                            tint = Color.White
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.background(Color.White)
+            TopAppBar(
+                title = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    "Account",
-                                    color = Color.Black,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = dimens.normalTextSize
-                                )
-                            },
-                            onClick = {
-                                menuExpanded = false
-                                onNavigateToProfile()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = PrimaryBlue
-                                )
-                            }
+                        Text(
+                            text = "ResQ PH",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = dimens.largeTextSize
+                        )
+                        Text(
+                            text = "Local Rescue App",
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = dimens.normalTextSize
                         )
                     }
-                }
-            }
+                },
+                actions = {
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Menu",
+                                tint = Color.White
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            modifier = Modifier.background(Color.White)
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "Account",
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = dimens.normalTextSize
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onNavigateToProfile()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = PrimaryBlue
+                                    )
+                                }
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = PrimaryBlue,
+                    scrolledContainerColor = PrimaryBlue
+                )
+            )
         },
         containerColor = BackgroundGray
     ) { innerPadding ->
@@ -360,6 +369,20 @@ fun FeedContent(
                                 onNavigateToEditPost(post.id, post.content, post.category)
                             }
                         )
+                    }
+                    
+                    // Pagination Controls
+                    if (totalPages > 1) {
+                        item {
+                            PaginationControls(
+                                currentPage = currentPage,
+                                totalPages = totalPages,
+                                onPreviousClick = { postViewModel.goToPreviousPage() },
+                                onNextClick = { postViewModel.goToNextPage() },
+                                onPageClick = { page -> postViewModel.goToPage(page) },
+                                dimens = dimens
+                            )
+                        }
                     }
                 }
             }
@@ -428,6 +451,120 @@ fun ShareExperienceButton(onClick: () -> Unit) {
 }
 
 @Composable
+fun PaginationControls(
+    currentPage: Int,
+    totalPages: Int,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onPageClick: (Int) -> Unit,
+    dimens: Dimensions
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = dimens.mediumPadding),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimens.largePadding),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Previous Button
+                Button(
+                    onClick = onPreviousClick,
+                    enabled = currentPage > 1,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    modifier = Modifier.height(dimens.buttonHeight * 0.8f)
+                ) {
+                    Text("Previous", color = Color.White, fontSize = dimens.normalTextSize)
+                }
+                
+                Spacer(modifier = Modifier.width(dimens.mediumPadding))
+                
+                // Page Numbers
+                val pagesToShow = when {
+                    totalPages <= 5 -> (1..totalPages).toList()
+                    currentPage <= 3 -> listOf(1, 2, 3, 4, 5)
+                    currentPage >= totalPages - 2 -> (totalPages - 4..totalPages).toList()
+                    else -> listOf(currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2)
+                }
+                
+                pagesToShow.forEach { page ->
+                    Button(
+                        onClick = { onPageClick(page) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (page == currentPage) PrimaryBlue else Color.White,
+                            contentColor = if (page == currentPage) Color.White else PrimaryBlue
+                        ),
+                        modifier = Modifier
+                            .size(dimens.buttonHeight * 0.8f)
+                            .padding(horizontal = dimens.smallPadding / 2),
+                        contentPadding = PaddingValues(0.dp),
+                        shape = RoundedCornerShape(dimens.cardRadius / 2),
+                        border = if (page != currentPage) BorderStroke(1.dp, PrimaryBlue) else null
+                    ) {
+                        Text(
+                            text = page.toString(),
+                            fontSize = dimens.normalTextSize,
+                            fontWeight = if (page == currentPage) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.width(dimens.mediumPadding))
+                
+                // Next Button
+                Button(
+                    onClick = onNextClick,
+                    enabled = currentPage < totalPages,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        disabledContainerColor = Color.LightGray
+                    ),
+                    modifier = Modifier.height(dimens.buttonHeight * 0.8f)
+                ) {
+                    Text("Next", color = Color.White, fontSize = dimens.normalTextSize)
+                }
+            }
+            
+            // Page Info
+            Text(
+                text = "Page $currentPage of $totalPages",
+                fontSize = dimens.smallTextSize,
+                color = Color.Gray,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = dimens.mediumPadding),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+fun getRelativeTime(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    
+    return when {
+        diff < 60000 -> "just now"
+        diff < 3600000 -> "${diff / 60000}m"
+        diff < 86400000 -> "${diff / 3600000}h"
+        diff < 604800000 -> "${diff / 86400000}d"
+        diff < 2592000000 -> "${diff / 604800000}w"
+        diff < 31536000000 -> "${diff / 2592000000}mo"
+        else -> "${diff / 31536000000}y"
+    }
+}
+
+@Composable
 fun PostCard(
     post: UserPost, 
     viewModel: PostViewModel, 
@@ -435,10 +572,15 @@ fun PostCard(
     onEditClick: () -> Unit
 ) {
     val dimens = rememberDimensions()
-    val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
-    val dateString = sdf.format(Date(post.timestamp))
+    val relativeTime = getRelativeTime(post.timestamp)
     var expanded by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showComments by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+    
+    val isLiked = currentUserId?.let { post.likes.contains(it) } ?: false
+    val likesCount = post.likes.size
+    val commentsCount = post.comments.size
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -460,7 +602,7 @@ fun PostCard(
                 Spacer(modifier = Modifier.width(dimens.mediumPadding))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = post.authorName, fontWeight = FontWeight.Bold, fontSize = dimens.mediumTextSize)
-                    Text(text = dateString, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = dimens.smallTextSize)
+                    Text(text = relativeTime, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = dimens.smallTextSize)
                 }
                 
                 // Kebab Menu (Only if owner)
@@ -486,6 +628,13 @@ fun PostCard(
                                 onClick = {
                                     expanded = false
                                     onEditClick()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null,
+                                        tint = PrimaryBlue
+                                    )
                                 }
                             )
                             DropdownMenuItem(
@@ -500,6 +649,13 @@ fun PostCard(
                                 onClick = {
                                     expanded = false
                                     showDeleteDialog = true
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = ActionRed
+                                    )
                                 }
                             )
                         }
@@ -542,26 +698,107 @@ fun PostCard(
             
             Spacer(modifier = Modifier.height(dimens.mediumPadding))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Like",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(dimens.largeIconSize * 0.4f)
-                )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                Text(text = "0", color = Color.Gray, fontSize = dimens.normalTextSize)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { 
+                            currentUserId?.let { viewModel.toggleLike(post.id, it) }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Like",
+                            tint = if (isLiked) Color.Red else Color.Gray,
+                            modifier = Modifier.size(dimens.largeIconSize * 0.4f)
+                        )
+                    }
+                    Text(text = "$likesCount", color = Color.Gray, fontSize = dimens.normalTextSize)
 
-                Spacer(modifier = Modifier.width(dimens.mediumIconSize))
+                    Spacer(modifier = Modifier.width(dimens.mediumIconSize))
 
-                Icon(
-                    imageVector = Icons.Default.Email,
-                    contentDescription = "Comment",
-                    tint = Color.Gray,
-                    modifier = Modifier.size(dimens.largeIconSize * 0.4f)
-                )
-                Spacer(modifier = Modifier.width(dimens.smallPadding))
-                Text(text = "0", color = Color.Gray, fontSize = dimens.normalTextSize)
+                    IconButton(onClick = { showComments = !showComments }) {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = "Comment",
+                            tint = if (showComments) PrimaryBlue else Color.Gray,
+                            modifier = Modifier.size(dimens.largeIconSize * 0.4f)
+                        )
+                    }
+                    Text(text = "$commentsCount", color = Color.Gray, fontSize = dimens.normalTextSize)
+                }
+            }
+            
+            // Comments Section
+            if (showComments) {
+                Spacer(modifier = Modifier.height(dimens.mediumPadding))
+                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                Spacer(modifier = Modifier.height(dimens.mediumPadding))
+                
+                // Comment Input
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        placeholder = { Text("Write a comment...", fontSize = dimens.normalTextSize, color = Color.Gray) },
+                        modifier = Modifier.weight(1f),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryBlue,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = PrimaryBlue
+                        ),
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.normalTextSize)
+                    )
+                    Spacer(modifier = Modifier.width(dimens.mediumPadding))
+                    IconButton(
+                        onClick = {
+                            if (commentText.isNotBlank()) {
+                                viewModel.addComment(post.id, commentText)
+                                commentText = ""
+                            }
+                        },
+                        enabled = commentText.isNotBlank()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = "Send",
+                            tint = if (commentText.isNotBlank()) PrimaryBlue else Color.Gray
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(dimens.mediumPadding))
+                
+                // Comments List
+                if (post.comments.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(dimens.mediumPadding)) {
+                        post.comments.sortedByDescending { it.timestamp }.forEach { comment ->
+                            CommentItem(
+                                comment = comment,
+                                currentUserId = currentUserId,
+                                onDeleteComment = { viewModel.deleteComment(post.id, comment) },
+                                onEditComment = { newText -> viewModel.editComment(post.id, comment, newText) },
+                                dimens = dimens
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "No comments yet. Be the first to comment!",
+                        color = Color.Gray,
+                        fontSize = dimens.normalTextSize,
+                        modifier = Modifier.padding(vertical = dimens.mediumPadding)
+                    )
+                }
             }
         }
     }
@@ -589,6 +826,232 @@ fun PostCard(
                 TextButton(
                     onClick = {
                         viewModel.deletePost(post.id)
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete", color = ActionRed, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(dimens.largePadding)
+        )
+    }
+}
+
+@Composable
+fun CommentItem(
+    comment: Comment,
+    currentUserId: String?,
+    onDeleteComment: () -> Unit,
+    onEditComment: (String) -> Unit,
+    dimens: Dimensions
+) {
+    val relativeTime = getRelativeTime(comment.timestamp)
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var menuExpanded by remember { mutableStateOf(false) }
+    
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+        shape = RoundedCornerShape(dimens.cardRadius / 1.5f)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimens.mediumPadding),
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(dimens.postAvatarSize * 0.7f)
+                    .clip(CircleShape)
+                    .background(Color.Gray)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.align(Alignment.Center).size(dimens.largeIconSize * 0.6f)
+                )
+            }
+            Spacer(modifier = Modifier.width(dimens.mediumPadding))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        Text(
+                            text = comment.userName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = dimens.normalTextSize
+                        )
+                        Text(
+                            text = relativeTime,
+                            fontSize = dimens.smallTextSize,
+                            color = Color.Gray
+                        )
+                    }
+                    
+                    if (currentUserId == comment.userId) {
+                        Box {
+                            IconButton(
+                                onClick = { menuExpanded = true },
+                                modifier = Modifier.size(dimens.mediumIconSize)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "Options",
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(dimens.largeIconSize * 0.6f)
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                                modifier = Modifier.background(Color.White)
+                            ) {
+                                DropdownMenuItem(
+                                    text = { 
+                                        Text(
+                                            "Edit",
+                                            color = Color.Black,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = dimens.normalTextSize
+                                        ) 
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showEditDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = null,
+                                            tint = PrimaryBlue
+                                        )
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { 
+                                        Text(
+                                            "Delete",
+                                            color = ActionRed,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = dimens.normalTextSize
+                                        ) 
+                                    },
+                                    onClick = {
+                                        menuExpanded = false
+                                        showDeleteDialog = true
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = ActionRed
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(dimens.smallPadding))
+                Text(
+                    text = comment.text,
+                    fontSize = dimens.normalTextSize,
+                    lineHeight = (dimens.normalTextSize.value * 1.3).sp,
+                    color = Color.Black
+                )
+            }
+        }
+    }
+    
+    if (showEditDialog) {
+        var editedText by remember { mutableStateOf(comment.text) }
+        
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { 
+                Text(
+                    "Edit Comment", 
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = dimens.largeTextSize
+                ) 
+            },
+            text = { 
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    placeholder = { Text("Edit your comment...", color = Color.Gray, fontSize = dimens.normalTextSize) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryBlue,
+                        unfocusedBorderColor = Color.Gray,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        cursorColor = PrimaryBlue
+                    ),
+                    minLines = 3,
+                    maxLines = 5,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = dimens.normalTextSize)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (editedText.isNotBlank() && editedText != comment.text) {
+                            onEditComment(editedText)
+                            showEditDialog = false
+                        } else if (editedText == comment.text) {
+                            showEditDialog = false
+                        }
+                    },
+                    enabled = editedText.isNotBlank()
+                ) {
+                    Text("Save", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Cancel", color = Color.Gray, fontWeight = FontWeight.Bold, fontSize = dimens.normalTextSize)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(dimens.largePadding)
+        )
+    }
+    
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { 
+                Text(
+                    "Delete Comment", 
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = dimens.largeTextSize
+                ) 
+            },
+            text = { 
+                Text(
+                    "Are you sure you want to delete this comment?",
+                    color = Color.Black,
+                    fontSize = dimens.normalTextSize
+                ) 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteComment()
                         showDeleteDialog = false
                     }
                 ) {
