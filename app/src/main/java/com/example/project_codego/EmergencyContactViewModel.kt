@@ -18,6 +18,9 @@ class EmergencyContactViewModel(application: Application) : AndroidViewModel(app
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _allContacts = MutableStateFlow<List<EmergencyContact>>(emptyList())
+    val allContacts: StateFlow<List<EmergencyContact>> = _allContacts.asStateFlow()
+
     private val _filteredContacts = MutableStateFlow<List<EmergencyContact>>(emptyList())
     val filteredContacts: StateFlow<List<EmergencyContact>> = _filteredContacts.asStateFlow()
 
@@ -26,6 +29,13 @@ class EmergencyContactViewModel(application: Application) : AndroidViewModel(app
 
     private val _totalPages = MutableStateFlow(1)
     val totalPages: StateFlow<Int> = _totalPages.asStateFlow()
+
+    private val _currentPageContacts = MutableStateFlow<List<EmergencyContact>>(emptyList())
+    val currentPageContacts: StateFlow<List<EmergencyContact>> = _currentPageContacts.asStateFlow()
+
+    companion object {
+        private const val PAGE_SIZE = 3
+    }
 
     init {
         loadContacts()
@@ -36,8 +46,8 @@ class EmergencyContactViewModel(application: Application) : AndroidViewModel(app
             _isLoading.value = true
             try {
                 repository.allContacts.collect { contacts ->
-                    _filteredContacts.value = contacts
-                    _totalPages.value = 1 // Simple pagination for now
+                    _allContacts.value = contacts
+                    updatePagination(contacts)
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
@@ -46,21 +56,45 @@ class EmergencyContactViewModel(application: Application) : AndroidViewModel(app
         }
     }
 
+    private fun updatePagination(contacts: List<EmergencyContact>) {
+        val totalPages = (contacts.size + PAGE_SIZE - 1) / PAGE_SIZE
+        _totalPages.value = totalPages
+        
+        val startIndex = _currentPage.value * PAGE_SIZE
+        val endIndex = minOf(startIndex + PAGE_SIZE, contacts.size)
+        _currentPageContacts.value = contacts.subList(startIndex, endIndex)
+    }
+
     fun searchContacts(query: String) {
         _searchQuery.value = query
-        _filteredContacts.value = if (query.isBlank()) {
+        val filtered = if (query.isBlank()) {
             repository.allContacts.value
         } else {
             repository.searchContacts(query)
         }
+        _filteredContacts.value = filtered
+        updatePagination(filtered)
     }
 
     fun previousPage() {
-        // Simple pagination - just for UI demo
+        if (_currentPage.value > 0) {
+            _currentPage.value = _currentPage.value - 1
+            updatePagination(_filteredContacts.value)
+        }
     }
 
     fun nextPage() {
-        // Simple pagination - just for UI demo
+        if (_currentPage.value < _totalPages.value - 1) {
+            _currentPage.value = _currentPage.value + 1
+            updatePagination(_filteredContacts.value)
+        }
+    }
+
+    fun goToPage(page: Int) {
+        if (page >= 0 && page < _totalPages.value) {
+            _currentPage.value = page
+            updatePagination(_filteredContacts.value)
+        }
     }
 
     fun insertContact(contact: EmergencyContact) {
