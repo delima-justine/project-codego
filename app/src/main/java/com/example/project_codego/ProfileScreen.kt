@@ -36,6 +36,12 @@ import com.example.project_codego.viewmodel.AuthViewModel
 import com.example.project_codego.ui.theme.ProjectcodegoTheme
 import com.example.project_codego.ui.theme.rememberDimensions
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
@@ -43,17 +49,54 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     val dimens = rememberDimensions()
     val currentUser by viewModel.currentUser.collectAsState()
     val displayName = currentUser?.displayName ?: currentUser?.email?.substringBefore("@") ?: "Rescue User"
     val email = currentUser?.email ?: "No Email"
     val uid = currentUser?.uid ?: "Unknown"
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
     val CardBackground = Color.White
     val ActionRed = Color(0xFFE53935)
     val TextDark = Color(0xFF333333)
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Account") },
+            text = { 
+                Text("Are you sure you want to delete your account? Your data will be hidden and permanently deleted after 30 days. You can cancel this request by logging in again within this period.") 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.softDeleteAccount(
+                            onSuccess = { 
+                                Toast.makeText(context, "Account scheduled for deletion.", Toast.LENGTH_LONG).show()
+                                onLogout() 
+                            },
+                            onError = { error ->
+                                Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = ActionRed)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -237,6 +280,20 @@ fun ProfileScreen(
                         )
                     }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(dimens.largePadding))
+
+            // Delete Account Button
+            TextButton(
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier.padding(bottom = dimens.largePadding)
+            ) {
+                Text(
+                    "Delete Account",
+                    color = ActionRed.copy(alpha = 0.7f),
+                    fontSize = dimens.smallTextSize
+                )
             }
         }
     }
