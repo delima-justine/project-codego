@@ -42,6 +42,15 @@ While this app acts as an information and sharing platform, its ultimate goal is
 * Post and read tips/advice regarding accidents, earthquakes, floods, and other disasters.
 * Foster a helping community base.
 
+### 📰 **News & Updates**
+* **Real-Time Information:** Stay updated with the latest disaster news and weather reports.
+* **Visual Feed:** Browse articles with images and summaries to stay informed about current events.
+
+### 📍 **Live Location Tracker**
+* **Community Tracking:** View the real-time location of other active community members on an interactive map.
+* **Safety & Privacy:** Toggle location sharing on or off. See who is active nearby.
+* **Map Integration:** Powered by OpenStreetMap for detailed local geography.
+
 ### 📞 **Centralized Emergency Contacts**
 * A complete, organized list of emergency hotlines.
 * Direct access to Police, Fire, Medical, and Rescue teams.
@@ -85,7 +94,11 @@ While this app acts as an information and sharing platform, its ultimate goal is
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
 
 *   **Authentication:** Firebase Authentication
+*   **Cloud Database:** Cloud Firestore (Real-time updates)
 *   **Local Database:** Room Persistence Library (SQLite)
+*   **Maps:** OpenStreetMap (osmdroid)
+*   **Networking:** Retrofit & Gson
+*   **Image Loading:** Coil
 
 ---
 
