@@ -48,7 +48,7 @@ data class UserLocation(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val timestamp: Long = 0L,
-    val isEmergency: Boolean = false
+    val emergency: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -203,7 +203,7 @@ fun TrackerMapContent(
     val mapViewRef = remember { mutableStateOf<MapView?>(null) }
 
     fun getColorForUser(user: UserLocation): Int {
-        if (user.isEmergency) return android.graphics.Color.RED
+        if (user.emergency) return android.graphics.Color.RED
         val hash = user.userId.hashCode()
         val r = (hash and 0xFF0000) shr 16
         val g = (hash and 0x00FF00) shr 8
@@ -217,8 +217,8 @@ fun TrackerMapContent(
         return results[0] // distance in meters
     }
 
-    fun createColoredMarker(color: Int, isEmergency: Boolean = false): Drawable {
-        val size = if (isEmergency) 64 else 48
+    fun createColoredMarker(color: Int, emergency: Boolean = false): Drawable {
+        val size = if (emergency) 64 else 48
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint()
@@ -230,6 +230,23 @@ fun TrackerMapContent(
         return BitmapDrawable(context.resources, bitmap)
     }
 
+    // Function to push current status to firestore
+    fun pushStatusToFirestore(location: GeoPoint?, sharing: Boolean, emergencyMode: Boolean) {
+        if (currentUserId.isNotEmpty() && location != null && (sharing || emergencyMode)) {
+            val userLocation = UserLocation(
+                userId = currentUserId,
+                userName = currentUserEmail.substringBefore("@"),
+                latitude = location.latitude,
+                longitude = location.longitude,
+                timestamp = System.currentTimeMillis(),
+                emergency = emergencyMode
+            )
+            firestore.collection("location_sharing")
+                .document(currentUserId)
+                .set(userLocation)
+        }
+    }
+
     DisposableEffect(isSharing, isEmergency) {
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
@@ -239,26 +256,7 @@ fun TrackerMapContent(
                     
                     if (isSharing || isEmergency) {
                         statusMessage = if (isEmergency) "EMERGENCY BROADCASTING!" else "GPS Locked. Uploading..."
-                        
-                        if (currentUserId.isNotEmpty()) {
-                            val userLocation = UserLocation(
-                                userId = currentUserId,
-                                userName = currentUserEmail.substringBefore("@"),
-                                latitude = location.latitude,
-                                longitude = location.longitude,
-                                timestamp = System.currentTimeMillis(),
-                                isEmergency = isEmergency
-                            )
-                            firestore.collection("location_sharing")
-                                .document(currentUserId)
-                                .set(userLocation)
-                                .addOnSuccessListener {
-                                    statusMessage = if (isEmergency) "HELP REQUEST SENT!" else "Location Synced (Live)"
-                                }
-                                .addOnFailureListener { e ->
-                                    statusMessage = "Upload Failed: ${e.message}"
-                                }
-                        }
+                        pushStatusToFirestore(geoPoint, isSharing, isEmergency)
                     } else {
                         statusMessage = "Tracking Locally (Not Shared)"
                     }
@@ -297,6 +295,11 @@ fun TrackerMapContent(
     }
 
     LaunchedEffect(isSharing, isEmergency) {
+        // Immediate sync when toggled, if we have a location
+        if ((isSharing || isEmergency) && myCurrentLocation != null) {
+            pushStatusToFirestore(myCurrentLocation, isSharing, isEmergency)
+        }
+        
         if (!isSharing && !isEmergency && currentUserId.isNotEmpty()) {
             firestore.collection("location_sharing")
                 .document(currentUserId)
@@ -319,8 +322,8 @@ fun TrackerMapContent(
                     
                     // Check for new emergencies
                     locations.forEach { user ->
-                        val wasEmergency = otherLocations.find { it.userId == user.userId }?.isEmergency ?: false
-                        if (user.isEmergency && !wasEmergency) {
+                        val wasEmergency = otherLocations.find { it.userId == user.userId }?.emergency ?: false
+                        if (user.emergency && !wasEmergency) {
                             // New emergency detected!
                             // Check distance
                             myCurrentLocation?.let { myLoc ->
@@ -358,9 +361,9 @@ fun TrackerMapContent(
                     userMarker.position = GeoPoint(user.latitude, user.longitude)
                     userMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     userMarker.title = user.userName
-                    userMarker.subDescription = if (user.isEmergency) "EMERGENCY!" else "Live"
+                    userMarker.subDescription = if (user.emergency) "🚨 NEED HELP! 🚨" else "Live"
                     val userColor = getColorForUser(user)
-                    userMarker.icon = createColoredMarker(userColor, user.isEmergency)
+                    userMarker.icon = createColoredMarker(userColor, user.emergency)
                     map.overlays.add(userMarker)
                 }
 
@@ -369,7 +372,7 @@ fun TrackerMapContent(
                     myMarker.position = loc
                     myMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     myMarker.title = "Me"
-                    myMarker.subDescription = if (isEmergency) "EMERGENCY MODE" else "My Location"
+                    myMarker.subDescription = if (isEmergency) "🚨 NEED HELP! 🚨" else "My Location"
                     myMarker.icon = createColoredMarker(
                         if (isEmergency) android.graphics.Color.RED else android.graphics.Color.BLUE,
                         isEmergency
@@ -412,21 +415,30 @@ fun TrackerMapContent(
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text("Active Users (${otherLocations.size})", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(otherLocations) { user ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.Top) {
                                 Surface(
-                                    modifier = Modifier.size(8.dp),
+                                    modifier = Modifier.size(8.dp).padding(top = 4.dp),
                                     shape = RoundedCornerShape(4.dp),
                                     color = Color(getColorForUser(user))
                                 ) {}
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = if (user.isEmergency) "${user.userName} (HELP!)" else user.userName,
-                                    fontSize = 12.sp,
-                                    color = if (user.isEmergency) Color.Red else Color.Black,
-                                    fontWeight = if (user.isEmergency) FontWeight.Bold else FontWeight.Normal
-                                )
+                                Column {
+                                    Text(
+                                        text = user.userName,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    if (user.emergency) {
+                                        Text(
+                                            text = "NEED HELP!",
+                                            fontSize = 11.sp,
+                                            color = Color.Red,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
