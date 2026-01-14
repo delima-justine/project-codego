@@ -34,6 +34,8 @@ import com.example.project_codego.viewmodel.AuthState
 import com.example.project_codego.viewmodel.AuthViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 private val AuthBackground = Color(0xFFEFF3F6)
 private val BrandBlue = Color(0xFF0088CC)
@@ -45,13 +47,52 @@ fun AuthScreen(
     onNavigateToEmergency: () -> Unit,
     viewModel: AuthViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     var isLogin by remember { mutableStateOf(true) }
     val authState by viewModel.authState.collectAsState()
+    var showReactivateDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             onLoginSuccess()
+        } else if (authState is AuthState.PendingDeletion) {
+            showReactivateDialog = true
         }
+    }
+
+    if (showReactivateDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showReactivateDialog = false
+                viewModel.logout()
+            },
+            title = { Text("Account Scheduled for Deletion") },
+            text = { Text((authState as? AuthState.PendingDeletion)?.message ?: "Would you like to reactivate your account?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showReactivateDialog = false
+                    viewModel.reactivateAccount(
+                        onSuccess = { 
+                            Toast.makeText(context, "Account reactivated successfully!", Toast.LENGTH_SHORT).show()
+                            onLoginSuccess() 
+                        },
+                        onError = { error ->
+                            Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                        }
+                    )
+                }) {
+                    Text("Reactivate Account")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showReactivateDialog = false
+                    viewModel.logout()
+                }) {
+                    Text("Cancel", color = Color.Gray)
+                }
+            }
+        )
     }
 
     Box(
