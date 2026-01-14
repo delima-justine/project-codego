@@ -33,38 +33,37 @@ While this app acts as an information and sharing platform, its ultimate goal is
 
 ## ✨ Key Features
 
-### 👤 **User Login & Registration**
-* Secure sign-up and login functionality.
-* Personalized experience for every user.
+### 👤 **User Authentication & Reactivation**
+* Secure sign-up and login powered by Firebase.
+* **Account Safety:** Features a "Soft Delete" with a 30-day grace period, allowing users to reactivate their accounts simply by logging back in.
 
-### 📢 **Emergency Experiences & Sharing Hub**
-* A community-driven section where users can share survival stories.
-* Post and read tips/advice regarding accidents, earthquakes, floods, and other disasters.
-* Foster a helping community base.
+### 📢 **Sharing Hub (Community Feed)**
+* **Interactive Posts:** Share survival stories, tips, and advice.
+* **Engagement:** Like posts and participate in discussions via a full commenting system (add, edit, delete).
+* **Organized Browsing:** Filter posts by category (Survival Story, Disaster Tip, etc.) and navigate using pagination.
+* **Polished UX:** Integrated skeleton loading for a smooth browsing experience.
+
+### 📍 **Live Tracker & Emergency Broadcast**
+* **Real-Time Map:** Powered by OpenStreetMap, allowing users to see active community members nearby.
+* **🚨 Emergency Mode:** Broadcast your status instantly. Your marker turns red with a "NEED HELP!" alert.
+* **Proximity Alerts:** Automatically notifies nearby users (within a 5km radius) when an emergency broadcast is initiated.
+* **Active Users List:** A live overlay showing active participants and their current status.
+
+### 📞 **Advanced Emergency Directory**
+* **Offline Access:** Full directory available without internet or cellular data.
+* **Search & Filter:** Quickly find specific hotlines using the search bar or filter by Category (Police, Fire, Medical, Rescue) and Region.
+* **One-Tap Calling:** Direct dialer integration for immediate contact.
 
 ### 📰 **News & Updates**
-* **Real-Time Information:** Stay updated with the latest disaster news and weather reports.
-* **Visual Feed:** Browse articles with images and summaries to stay informed about current events.
+* **Stay Informed:** Real-time disaster news and weather reports.
+* **Rich Content:** Visual feed with article images, summaries, and source verification.
 
-### 📍 **Live Location Tracker**
-* **Community Tracking:** View the real-time location of other active community members on an interactive map.
-* **Safety & Privacy:** Toggle location sharing on or off. See who is active nearby.
-* **Map Integration:** Powered by OpenStreetMap for detailed local geography.
-
-### 📞 **Centralized Emergency Contacts**
-* A complete, organized list of emergency hotlines.
-* Direct access to Police, Fire, Medical, and Rescue teams.
-
-### 📶 **Offline Access**
-* **Crucial Feature:** Users can view the emergency contact directory **without** an internet or cellular data connection.
-* **Smart Navigation:** Home, News, and Tracker tabs are automatically disabled when offline or not authenticated, ensuring users can always access emergency contacts.
-* **Authentication-Based Access:** Certain features require user authentication to ensure community safety and accountability.
+### 📶 **Smart Offline Navigation**
+* The app intelligently manages connectivity. While the **Emergency** directory remains fully functional offline, other tabs (Home, News, Tracker) are gracefully disabled to prioritize essential safety information.
 
 ### ✏️ **Profile Management**
-* Users can customize their profiles (Name, Profile Picture, Bio).
-
-### ℹ️ **About Page**
-* In-app documentation regarding the app's purpose and usage guide.
+* **Initials-based Avatars:** Automatically generated colorful avatars based on user names.
+* **Profile Customization:** Easily update name, email, and security settings.
 
 ---
 
@@ -93,6 +92,7 @@ While this app acts as an information and sharing platform, its ultimate goal is
 ![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
 
+*   **UI Framework:** Jetpack Compose (Material 3)
 *   **Authentication:** Firebase Authentication
 *   **Cloud Database:** Cloud Firestore (Real-time updates)
 *   **Local Database:** Room Persistence Library (SQLite)
