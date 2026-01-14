@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -46,7 +47,8 @@ data class UserLocation(
     val userName: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    val isEmergency: Boolean = false
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,11 +74,27 @@ fun TrackerScreen(
         )
     }
 
+    var hasNotificationPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        )
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            hasNotificationPermission = permissions[Manifest.permission.POST_NOTIFICATIONS] == true
+        }
     }
 
     Scaffold(
@@ -103,12 +121,19 @@ fun TrackerScreen(
         ) {
             if (!hasLocationPermission) {
                 PermissionRequestScreen {
-                    permissionLauncher.launch(
+                    val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        )
+                    } else {
                         arrayOf(
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
-                    )
+                    }
+                    permissionLauncher.launch(permissions)
                 }
             } else {
                 TrackerMapContent(
@@ -169,6 +194,7 @@ fun TrackerMapContent(
     
     var otherLocations by remember { mutableStateOf<List<UserLocation>>(emptyList()) }
     var isSharing by remember { mutableStateOf(false) }
+    var isEmergency by remember { mutableStateOf(false) }
     var myCurrentLocation by remember { mutableStateOf<GeoPoint?>(null) }
     
     // Debug Status State
@@ -176,16 +202,23 @@ fun TrackerMapContent(
 
     val mapViewRef = remember { mutableStateOf<MapView?>(null) }
 
-    fun getColorForUser(userId: String): Int {
-        val hash = userId.hashCode()
+    fun getColorForUser(user: UserLocation): Int {
+        if (user.isEmergency) return android.graphics.Color.RED
+        val hash = user.userId.hashCode()
         val r = (hash and 0xFF0000) shr 16
         val g = (hash and 0x00FF00) shr 8
         val b = hash and 0x0000FF
         return android.graphics.Color.rgb(r, g, b)
     }
 
-    fun createColoredMarker(color: Int): Drawable {
-        val size = 48
+    fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+        return results[0] // distance in meters
+    }
+
+    fun createColoredMarker(color: Int, isEmergency: Boolean = false): Drawable {
+        val size = if (isEmergency) 64 else 48
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint()
@@ -197,31 +230,37 @@ fun TrackerMapContent(
         return BitmapDrawable(context.resources, bitmap)
     }
 
-    DisposableEffect(isSharing) {
+    DisposableEffect(isSharing, isEmergency) {
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { location ->  
                     val geoPoint = GeoPoint(location.latitude, location.longitude)
                     myCurrentLocation = geoPoint
-                    statusMessage = "GPS Locked. Uploading..."
                     
-                    if (currentUserId.isNotEmpty()) {
-                        val userLocation = UserLocation(
-                            userId = currentUserId,
-                            userName = currentUserEmail.substringBefore("@"),
-                            latitude = location.latitude,
-                            longitude = location.longitude,
-                            timestamp = System.currentTimeMillis()
-                        )
-                        firestore.collection("location_sharing")
-                            .document(currentUserId)
-                            .set(userLocation)
-                            .addOnSuccessListener {
-                                statusMessage = "Location Synced (Live)"
-                            }
-                            .addOnFailureListener { e ->
-                                statusMessage = "Upload Failed: ${e.message}"
-                            }
+                    if (isSharing || isEmergency) {
+                        statusMessage = if (isEmergency) "EMERGENCY BROADCASTING!" else "GPS Locked. Uploading..."
+                        
+                        if (currentUserId.isNotEmpty()) {
+                            val userLocation = UserLocation(
+                                userId = currentUserId,
+                                userName = currentUserEmail.substringBefore("@"),
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                timestamp = System.currentTimeMillis(),
+                                isEmergency = isEmergency
+                            )
+                            firestore.collection("location_sharing")
+                                .document(currentUserId)
+                                .set(userLocation)
+                                .addOnSuccessListener {
+                                    statusMessage = if (isEmergency) "HELP REQUEST SENT!" else "Location Synced (Live)"
+                                }
+                                .addOnFailureListener { e ->
+                                    statusMessage = "Upload Failed: ${e.message}"
+                                }
+                        }
+                    } else {
+                        statusMessage = "Tracking Locally (Not Shared)"
                     }
                     
                     mapViewRef.value?.let { map ->
@@ -234,28 +273,17 @@ fun TrackerMapContent(
             }
         }
 
-        if (isSharing) {
-            statusMessage = "Requesting Location..."
-            // Use BALANCED_POWER_ACCURACY for better indoor results
-            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_BALANCED_POWER_ACCURACY, 5000)
-                .setMinUpdateIntervalMillis(3000)
-                .build()
+        // Always request updates while screen is active for local map and alerts
+        statusMessage = "Requesting Location..."
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+            .setMinUpdateIntervalMillis(3000)
+            .build()
 
-            fusedLocationClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
-        } else {
-            statusMessage = "Sharing Paused"
-            myCurrentLocation = null
-            // Remove from Firebase so others can't see us
-            if (currentUserId.isNotEmpty()) {
-                firestore.collection("location_sharing")
-                    .document(currentUserId)
-                    .delete()
-            }
-        }
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
 
         onDispose {
             fusedLocationClient.removeLocationUpdates(locationCallback)
@@ -265,6 +293,14 @@ fun TrackerMapContent(
                     .document(currentUserId)
                     .delete()
             }
+        }
+    }
+
+    LaunchedEffect(isSharing, isEmergency) {
+        if (!isSharing && !isEmergency && currentUserId.isNotEmpty()) {
+            firestore.collection("location_sharing")
+                .document(currentUserId)
+                .delete()
         }
     }
 
@@ -280,6 +316,22 @@ fun TrackerMapContent(
                     val locations = snapshot.documents.mapNotNull { doc ->
                         doc.toObject(UserLocation::class.java)
                     }.filter { it.userId != currentUserId }
+                    
+                    // Check for new emergencies
+                    locations.forEach { user ->
+                        val wasEmergency = otherLocations.find { it.userId == user.userId }?.isEmergency ?: false
+                        if (user.isEmergency && !wasEmergency) {
+                            // New emergency detected!
+                            // Check distance
+                            myCurrentLocation?.let { myLoc ->
+                                val distance = calculateDistance(myLoc.latitude, myLoc.longitude, user.latitude, user.longitude)
+                                if (distance < 5000) { // 5km radius
+                                    NotificationHelper.showEmergencyNotification(context, user.userName, user.userId)
+                                }
+                            }
+                        }
+                    }
+                    
                     otherLocations = locations
                 }
             }
@@ -306,9 +358,9 @@ fun TrackerMapContent(
                     userMarker.position = GeoPoint(user.latitude, user.longitude)
                     userMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     userMarker.title = user.userName
-                    userMarker.subDescription = "Live"
-                    val userColor = getColorForUser(user.userId)
-                    userMarker.icon = createColoredMarker(userColor)
+                    userMarker.subDescription = if (user.isEmergency) "EMERGENCY!" else "Live"
+                    val userColor = getColorForUser(user)
+                    userMarker.icon = createColoredMarker(userColor, user.isEmergency)
                     map.overlays.add(userMarker)
                 }
 
@@ -317,8 +369,11 @@ fun TrackerMapContent(
                     myMarker.position = loc
                     myMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                     myMarker.title = "Me"
-                    myMarker.subDescription = "My Location"
-                    myMarker.icon = createColoredMarker(android.graphics.Color.BLUE)
+                    myMarker.subDescription = if (isEmergency) "EMERGENCY MODE" else "My Location"
+                    myMarker.icon = createColoredMarker(
+                        if (isEmergency) android.graphics.Color.RED else android.graphics.Color.BLUE,
+                        isEmergency
+                    )
                     map.overlays.add(myMarker)
                 }
                 
@@ -331,13 +386,16 @@ fun TrackerMapContent(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f))
+            colors = CardDefaults.cardColors(
+                containerColor = if (isEmergency) Color.Red.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.7f)
+            )
         ) {
             Text(
                 text = statusMessage,
                 color = Color.White,
                 fontSize = 12.sp,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                fontWeight = if (isEmergency) FontWeight.Bold else FontWeight.Normal
             )
         }
 
@@ -360,10 +418,15 @@ fun TrackerMapContent(
                                 Surface(
                                     modifier = Modifier.size(8.dp),
                                     shape = RoundedCornerShape(4.dp),
-                                    color = Color(getColorForUser(user.userId))
+                                    color = Color(getColorForUser(user))
                                 ) {}
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(user.userName, fontSize = 12.sp)
+                                Text(
+                                    text = if (user.isEmergency) "${user.userName} (HELP!)" else user.userName,
+                                    fontSize = 12.sp,
+                                    color = if (user.isEmergency) Color.Red else Color.Black,
+                                    fontWeight = if (user.isEmergency) FontWeight.Bold else FontWeight.Normal
+                                )
                             }
                         }
                     }
@@ -371,41 +434,69 @@ fun TrackerMapContent(
             }
         }
 
-        Card(
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
                 .fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            // Emergency Button
+            Button(
+                onClick = { 
+                    isEmergency = !isEmergency
+                    if (isEmergency) isSharing = true // Auto share if emergency
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isEmergency) Color.Gray else Color.Red,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
-                Column {
-                    Text(
-                        text = if (isSharing) "Sharing Location" else "Location Hidden",
-                        fontWeight = FontWeight.Bold,
-                        color = if (isSharing) Color(0xFF4CAF50) else Color.Gray
-                    )
-                    Text(
-                        text = if (isSharing) "Others can see you" else "You are invisible",
-                        fontSize = 12.sp,
-                        color = Color.Gray
+                Icon(Icons.Default.LocationOn, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isEmergency) "CANCEL EMERGENCY" else "EMERGENCY!",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+            }
+
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = if (isSharing) "Sharing Location" else "Location Hidden",
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSharing) Color(0xFF4CAF50) else Color.Gray
+                        )
+                        Text(
+                            text = if (isSharing) "Others can see you" else "You are invisible",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+                    Switch(
+                        checked = isSharing,
+                        onCheckedChange = { isSharing = it },
+                        enabled = !isEmergency, // Can't turn off sharing during emergency
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color(0xFF4CAF50)
+                        )
                     )
                 }
-                Switch(
-                    checked = isSharing,
-                    onCheckedChange = { isSharing = it },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Color(0xFF4CAF50)
-                    )
-                )
             }
         }
     }
