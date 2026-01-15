@@ -97,7 +97,15 @@ fun AppNavigation() {
     val context = LocalContext.current
     val onboardingPreferences = remember { OnboardingPreferences(context) }
     var showSplash by remember { mutableStateOf(true) }
-    val initialScreen = if (onboardingPreferences.isOnboardingCompleted()) Screen.Auth else Screen.Onboarding
+    
+    val initialScreen = remember {
+        when {
+            !onboardingPreferences.isOnboardingCompleted() -> Screen.Onboarding
+            FirebaseAuth.getInstance().currentUser != null -> Screen.Home
+            else -> Screen.Auth
+        }
+    }
+    
     val backStack = remember { mutableStateListOf(NavEntry(initialScreen)) }
     val currentEntry = backStack.last()
 
@@ -116,6 +124,11 @@ fun AppNavigation() {
         if (backStack.size > 1) {
             backStack.removeAt(backStack.lastIndex)
         }
+    }
+    
+    fun navigateToAuthAndClearStack() {
+        backStack.clear()
+        backStack.add(NavEntry(Screen.Auth))
     }
 
     BackHandler(enabled = backStack.size > 1) {
@@ -138,7 +151,7 @@ fun AppNavigation() {
             Screen.Home -> SharingHubScreen(
                 currentTab = currentEntry.tab,
                 onTabSelected = { newTab -> navigateTo(Screen.Home, newTab) },
-                onLogout = { navigateTo(Screen.Auth) },
+                onLogout = { navigateToAuthAndClearStack() },
                 onNavigateToCreatePost = { navigateTo(Screen.CreatePost) },
                 onNavigateToEditPost = { id, content, category ->
                     navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
