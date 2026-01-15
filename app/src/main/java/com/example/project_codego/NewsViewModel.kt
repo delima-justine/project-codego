@@ -14,7 +14,7 @@ class NewsViewModel : ViewModel() {
     val isRefreshing: State<Boolean> = _isRefreshing
 
     private val apiService = NewsApiService.create()
-    private val apiKey = "bcad6e37557b454d41130d680f6ec8b9" // Replace with your actual key if different
+    private val apiKey = BuildConfig.NEWS_API_KEY
 
     init {
         fetchNews()
