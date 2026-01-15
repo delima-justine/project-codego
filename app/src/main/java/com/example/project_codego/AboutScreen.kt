@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project_codego.ui.theme.rememberDimensions
@@ -55,7 +58,9 @@ fun AboutScreen(onBackClick: () -> Unit) {
             item {
                 AboutSection(
                     title = "Brief Description",
-                    content = "ResQ PH is a community-driven emergency response and information sharing platform designed specifically for the Philippines. It aims to empower Filipinos with the tools and information needed to navigate through natural disasters and emergencies common in our archipelago.",
+                    content = buildAnnotatedString {
+                        append("ResQ PH is a community-driven emergency response and information sharing platform designed specifically for the Philippines. It aims to empower Filipinos with the tools and information needed to navigate through natural disasters and emergencies common in our archipelago.")
+                    },
                     icon = Icons.Default.Info
                 )
             }
@@ -63,7 +68,9 @@ fun AboutScreen(onBackClick: () -> Unit) {
             item {
                 AboutSection(
                     title = "Purpose",
-                    content = "Our primary purpose is to bridge the gap between emergency services and the community. By providing a platform for sharing survival stories, real-time updates, and easy access to emergency hotlines, ResQ PH fosters a more resilient and prepared Filipino community.",
+                    content = buildAnnotatedString {
+                        append("Our primary purpose is to bridge the gap between emergency services and the community. By providing a platform for sharing survival stories, real-time updates, and easy access to emergency hotlines, ResQ PH fosters a more resilient and prepared Filipino community.")
+                    },
                     icon = Icons.Default.Share
                 )
             }
@@ -71,11 +78,32 @@ fun AboutScreen(onBackClick: () -> Unit) {
             item {
                 AboutSection(
                     title = "How to Use (User Manual)",
-                    content = "1. **Stay Informed**: Browse the Feed to see real-time survival stories and tips from other users in your area.\n\n" +
-                            "2. **Share & Help**: Use the 'Share Your Experience' button to post about local emergencies, road closures, or safety tips. Choose a category like 'Bagyo' or 'Baha' to help others filter information.\n\n" +
-                            "3. **Emergency Contacts**: Access the 'Emergency' tab for a comprehensive list of nationwide hotlines like NDRRMC, PAGASA, and Red Cross, available even without internet.\n\n" +
-                            "4. **Manage Profile**: Keep your emergency contact information updated in the 'Account' section for better community support.\n\n" +
-                            "5. **News & Tracker**: Stay updated with the latest weather bulletins and track active storms in the 'News' and 'Tracker' sections.",
+                    content = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("1. Stay Informed:")
+                        }
+                        append(" Browse the Feed to see real-time survival stories and tips from other users in your area.\n\n")
+                        
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("2. Share & Help:")
+                        }
+                        append(" Use the 'Share Your Experience' button to post about local emergencies, road closures, or safety tips. Choose a category like 'Advice' or 'General' to help others filter information.\n\n")
+                        
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("3. Emergency Contacts:")
+                        }
+                        append(" Access the 'Emergency' tab for a comprehensive list of PH emergency hotlines. Use the search bar to quickly find specific contacts. Tap the call button on any contact to instantly dial the number - your phone's dialer will open with the number pre-filled, available even without internet.\n\n")
+                        
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("4. Manage Profile:")
+                        }
+                        append(" Keep your emergency contact information updated in the 'Account' section for better community support.\n\n")
+                        
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("5. News & Tracker:")
+                        }
+                        append(" Stay updated with the latest weather bulletins and track active storms in the 'News' and 'Tracker' sections.")
+                    },
                     icon = Icons.Default.Menu
                 )
             }
@@ -95,7 +123,7 @@ fun AboutScreen(onBackClick: () -> Unit) {
 }
 
 @Composable
-fun AboutSection(title: String, content: String, icon: ImageVector) {
+fun AboutSection(title: String, content: androidx.compose.ui.text.AnnotatedString, icon: ImageVector) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
