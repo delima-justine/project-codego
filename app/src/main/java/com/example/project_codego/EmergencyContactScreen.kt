@@ -61,50 +61,43 @@ fun EmergencyContactsScreen(
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(PrimaryBlue)
-                    .padding(
-                        top = 48.dp,
-                        start = 24.dp,
-                        end = 24.dp
-                    )
-            ) {
-                // If onBackClick is provided, show back button
-                if (onBackClick != null) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "PH Emergency Contacts",
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = onBackClick) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = Color.White
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = PrimaryBlue
+            if (onBackClick != null) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "PH Emergency Contacts",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
                         )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = PrimaryBlue
                     )
-                } else {
-                    // Default header without back button
-                    Text(
-                        text = "PH Emergency Contacts",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "PH Emergency Contacts",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = PrimaryBlue
                     )
-                }
+                )
             }
         },
         bottomBar = {
