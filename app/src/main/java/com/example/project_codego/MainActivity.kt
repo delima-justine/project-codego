@@ -144,6 +144,7 @@ fun AppNavigation() {
                     navigateTo(Screen.EditPost, postId = id, postContent = content, postCategory = category)
                 },
                 onNavigateToEditProfile = { navigateTo(Screen.EditProfile) },
+                onNavigateToAbout = { navigateTo(Screen.About) },
                 onBackClick = { goBack() }
             )
             Screen.CreatePost -> CreatePostScreen(
@@ -156,6 +157,9 @@ fun AppNavigation() {
                 onBackClick = { goBack() }
             )
             Screen.EditProfile -> EditProfileScreen(
+                onBackClick = { goBack() }
+            )
+            Screen.About -> AboutScreen(
                 onBackClick = { goBack() }
             )
         }
