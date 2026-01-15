@@ -51,8 +51,9 @@ While this app acts as an information and sharing platform, its ultimate goal is
 
 ### 📞 **Advanced Emergency Directory**
 * **Offline Access:** Full directory available without internet or cellular data.
-* **Search & Filter:** Quickly find specific hotlines using the search bar or filter by Category (Police, Fire, Medical, Rescue) and Region.
-* **One-Tap Calling:** Direct dialer integration for immediate contact.
+* **Search & Filter:** Quickly find specific hotlines using the search bar.
+* **One-Tap Calling:** Direct dialer integration for immediate contact. Tap the call button on any emergency contact card to instantly open your phone's dialer with the number pre-filled.
+* **Pagination:** Navigate through emergency contacts with easy-to-use page controls (3 contacts per page).
 
 ### 📰 **News & Updates**
 * **Stay Informed:** Real-time disaster news and weather reports.
