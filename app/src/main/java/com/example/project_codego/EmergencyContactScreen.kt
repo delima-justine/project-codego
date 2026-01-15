@@ -30,6 +30,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.animation.core.*
 import android.util.Log
+import android.content.Intent
+import android.net.Uri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +42,7 @@ fun EmergencyContactsScreen(
     // Colors matching SharingHubScreen
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
+    val context = LocalContext.current
     
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val currentPageContacts by viewModel.currentPageContacts.collectAsStateWithLifecycle()
@@ -204,7 +207,13 @@ fun EmergencyContactsScreen(
                     EmergencyCard(
                         title = contact.name,
                         number = contact.phoneNumber,
-                        icon = DataSource.getIconForContact(contact.icon)
+                        icon = DataSource.getIconForContact(contact.icon),
+                        onCallClick = {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:${contact.phoneNumber}")
+                            }
+                            context.startActivity(intent)
+                        }
                     )
                 }
             }
@@ -216,7 +225,8 @@ fun EmergencyContactsScreen(
 fun EmergencyCard(
     title: String,
     number: String,
-    icon: String = "📞"
+    icon: String = "📞",
+    onCallClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -243,7 +253,7 @@ fun EmergencyCard(
             }
 
             Button(
-                onClick = { },
+                onClick = onCallClick,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
                 modifier = Modifier.size(48.dp),
                 contentPadding = PaddingValues(0.dp)
