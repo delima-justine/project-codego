@@ -906,19 +906,11 @@ fun CommentItem(
                 .padding(dimens.mediumPadding),
             verticalAlignment = Alignment.Top
         ) {
-            Box(
-                modifier = Modifier
-                    .size(dimens.postAvatarSize * 0.7f)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.align(Alignment.Center).size(dimens.largeIconSize * 0.6f)
-                )
-            }
+            UserAvatar(
+                name = comment.userName,
+                modifier = Modifier.size(dimens.postAvatarSize * 0.7f),
+                fontSize = (dimens.postAvatarSize.value * 0.7f / 2.5f).sp
+            )
             Spacer(modifier = Modifier.width(dimens.mediumPadding))
             Column(modifier = Modifier.weight(1f)) {
                 Row(
