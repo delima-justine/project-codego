@@ -59,6 +59,8 @@ fun TrackerScreen(
 ) {
     val context = LocalContext.current
     val currentUser by authViewModel.currentUser.collectAsState()
+    val prefs = remember { OnboardingPreferences(context) }
+    var showInstructionDialog by remember { mutableStateOf(!prefs.isTrackerIntroShown()) }
     
     // Initialize OSM Configuration
     LaunchedEffect(Unit) {
@@ -95,6 +97,16 @@ fun TrackerScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             hasNotificationPermission = permissions[Manifest.permission.POST_NOTIFICATIONS] == true
         }
+    }
+
+    // Instruction Dialog
+    if (showInstructionDialog) {
+        InstructionDialog(
+            onDismiss = {
+                showInstructionDialog = false
+                prefs.setTrackerIntroShown()
+            }
+        )
     }
 
     Scaffold(
@@ -143,6 +155,34 @@ fun TrackerScreen(
             }
         }
     }
+}
+
+@Composable
+fun InstructionDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Got it!", color = Color(0xFF0088CC), fontWeight = FontWeight.Bold)
+            }
+        },
+        title = {
+            Text(
+                text = "Welcome to Live Tracker!",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("📍 Toggle location sharing to let friends see you on the map")
+                Text("🚨 Use EMERGENCY button if you need urgent help")
+                Text("👥 See active users sharing their location in real-time")
+            }
+        },
+        containerColor = Color.White,
+        shape = RoundedCornerShape(16.dp)
+    )
 }
 
 @Composable
