@@ -57,6 +57,7 @@ fun ProfileScreen(
     val uid = currentUser?.uid ?: "Unknown"
 
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showSignOutDialog by remember { mutableStateOf(false) }
 
     val PrimaryBlue = Color(0xFF0088CC)
     val BackgroundGray = Color(0xFFF0F2F5)
@@ -95,6 +96,45 @@ fun ProfileScreen(
                     Text("Cancel")
                 }
             }
+        )
+    }
+
+    if (showSignOutDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutDialog = false },
+            title = { 
+                Text(
+                    "Sign Out",
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                ) 
+            },
+            text = { 
+                Text(
+                    "Are you sure you want to sign out?",
+                    color = TextDark
+                ) 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSignOutDialog = false
+                        viewModel.logout()
+                        Toast.makeText(context, "Successfully signed out", Toast.LENGTH_SHORT).show()
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = ActionRed)
+                ) {
+                    Text("Sign Out", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutDialog = false }) {
+                    Text("Cancel", fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(dimens.largePadding)
         )
     }
 
@@ -224,10 +264,7 @@ fun ProfileScreen(
                         .padding(dimens.largePadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    TextButton(onClick = {
-                        viewModel.logout()
-                        onLogout()
-                    }) {
+                    TextButton(onClick = { showSignOutDialog = true }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = null, tint = ActionRed)
                         Spacer(modifier = Modifier.width(dimens.mediumPadding))
                         Text("Sign Out", color = ActionRed, fontSize = dimens.mediumTextSize)
