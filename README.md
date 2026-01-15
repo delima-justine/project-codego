@@ -133,10 +133,18 @@ Follow these instructions to get a copy of the project up and running on your lo
     * Launch Android Studio.
     * Select "Open an existing Android Studio project".
     * Navigate to the cloned directory and select it.
-3.  **Sync Gradle**
+3.  **Configure API Keys**
+    * Copy `local.properties.example` to `local.properties`
+    * Add your News API key:
+      ```properties
+      NEWS_API_KEY=your_actual_api_key_here
+      ```
+    * Get your free API key from [NewsAPI.org](https://newsapi.org/)
+    * **Important:** `local.properties` is gitignored and should never be committed
+4.  **Sync Gradle**
     * Android Studio should automatically detect the `build.gradle.kts` files and sync.
     * If not, click "File" > "Sync Project with Gradle Files".
-4.  **Run the application**
+5.  **Run the application**
     * Connect an Android device or start an Emulator.
     * Click the green "Run" button (Play icon) in the toolbar.
 
