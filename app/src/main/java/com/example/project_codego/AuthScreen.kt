@@ -54,6 +54,7 @@ fun AuthScreen(
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
+            Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
             onLoginSuccess()
         } else if (authState is AuthState.PendingDeletion) {
             showReactivateDialog = true
