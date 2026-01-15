@@ -68,9 +68,10 @@ The **Sharing Hub** is where the community connects through survival stories and
 ### 3.2 Emergency Hotlines
 A comprehensive directory designed for quick access, even offline.
 
-*   **Search & Filter:** Use the search bar to find specific agencies, or filter by **Category** (Police, Fire, Medical, Rescue) and **Region**.
-*   **Direct Calling:** Tap the **phone icon (📞)** on any contact card to open your dialer.
-*   **Navigation:** Browse multiple pages of contacts using the pagination controls at the bottom.
+*   **Search:** Use the search bar to quickly find specific emergency contacts or agencies.
+*   **Direct Calling:** Tap the **call button (📞)** on any contact card to instantly open your phone's dialer app with the emergency number pre-filled. Simply press call in your phone app to complete the connection.
+*   **Pagination:** Browse through emergency contacts efficiently with 3 contacts displayed per page. Use the page number buttons or "Previous"/"Next" buttons at the bottom to navigate.
+*   **Offline Access:** All emergency contacts are stored locally and remain fully accessible without an internet connection.
 
 ### 3.3 News & Updates
 Stay informed with curated disaster-related news.
